@@ -303,12 +303,13 @@ public class SyntaxAnalyser {
     lexData thread;
 
     //Содать терминальный узел (в дереве это узел без наследников)
-    synNode trace_Terminal(lxNode tok)
-    {
+    synNode trace_Terminal(lxNode tok) {
         synNode temp = new synNode(synNode.synType._terminal);
         temp.termin = tok;
         return temp;
-    };
+    }
+
+    ;
 
     //=#=#=#=#=#=#=#=# Обработчики нетерминалов (правил грамматики) =#=#=#=#
     // Принцип рекурсивного спуска в том, что если у нас есть грамматика в виде,
@@ -322,19 +323,11 @@ public class SyntaxAnalyser {
     //                        | expression ">=" expression
     //                        | expression "<" expression
     //                        | expression ">" expression
-    public synNode trace_Bool_Expression()
-    {
+    public synNode trace_Bool_Expression() {
         synNode temp = new synNode(synNode.synType._bool_expression);
         temp.addChild(trace_Expression());
         synNode t;
-        switch (thread.lookNext())
-        {
-            case _ass:
-                flag = true;
-                temp.addChild(trace_Terminal(thread.getNext()));
-                t = trace_Expression();
-                temp.addChild(t);
-                break;
+        switch (thread.lookNext()) {
             case _ne:
                 flag = true;
                 temp.addChild(trace_Terminal(thread.getNext()));
@@ -377,11 +370,9 @@ public class SyntaxAnalyser {
     //Обработчик правила unsigned_factor      ::= "(" expression ")"
     //                        | NUMBER
     //                        | IDENTIFIER
-    public synNode trace_Unsigned_Factor()
-    {
+    public synNode trace_Unsigned_Factor() {
         synNode temp = new synNode(synNode.synType._unsigned_factor);
-        switch (thread.lookNext())
-        {
+        switch (thread.lookNext()) {
             case _brkt:
                 thread.matchNext(tokType._brkt);
                 temp.addChild(trace_Bool_Expression());
@@ -400,11 +391,9 @@ public class SyntaxAnalyser {
 
     //Обработчик правила signed_factor        ::= unsigned_factor
     //                        | "-" unsigned_factor
-    public synNode trace_Signed_Factor()
-    {
+    public synNode trace_Signed_Factor() {
         synNode temp = new synNode(synNode.synType._signed_factor);
-        if (thread.lookNext() == tokType._sub)
-        {
+        if (thread.lookNext() == tokType._sub) {
             temp.addChild(trace_Terminal(thread.getNext()));
         }
         temp.addChild(trace_Unsigned_Factor());
@@ -413,12 +402,10 @@ public class SyntaxAnalyser {
 
     //Обработка терминалов NUMBER ::= [0-9]+
     //					   IDENTIFIER ::= [a-zA-Z_][a-zA-Z0-9_]*
-    public synNode trace_Term()
-    {
+    public synNode trace_Term() {
         synNode temp = new synNode(synNode.synType._term);
         temp.addChild(trace_Signed_Factor());
-        switch (thread.lookNext())
-        {
+        switch (thread.lookNext()) {
             case _mul:
                 temp.addChild(trace_Terminal(thread.getNext()));
                 temp.addChild(trace_Expression());
@@ -434,12 +421,10 @@ public class SyntaxAnalyser {
     //Обработчик правила expression           ::= term
     //                        | term "+" expression
     //                        | term "-" expression
-    public synNode trace_Expression()
-    {
+    public synNode trace_Expression() {
         synNode temp = new synNode(synNode.synType._expression);
         temp.addChild(trace_Term());
-        switch (thread.lookNext())
-        {
+        switch (thread.lookNext()) {
             case _add:
                 temp.addChild(trace_Terminal(thread.getNext()));
                 temp.addChild(trace_Expression());
@@ -452,45 +437,46 @@ public class SyntaxAnalyser {
         return temp;
     }
 
-    //Обработчик правила for ::= "for" IDENTIFIER ":=" boolean_expression "to" boolean_expression "do" block ";"
-    public synNode trace_For()
-    {
+    //Обработчик правила for ::= "for" "(" statement ";" boolean_expression ";" statement ";" ")" "{" block "}"
+    public synNode trace_For() {
         thread.matchNext(tokType._for);
         synNode temp = new synNode(synNode.synType._for_node);
-        temp.addChild(trace_Terminal(thread.getNext()));
-        thread.matchNext(tokType._ass);
-        temp.addChild(trace_Signed_Factor());
-        thread.matchNext(tokType._to);
-        thread.matchNext(tokType._nam);
-        //temp.addChild(trace_Bool_Expression());
-        thread.matchNext(tokType._loop);
-        if (thread.lookNext()==tokType._opbr){
-            temp.addChild(trace_Block());
-        }
-        else if (thread.lookNext() == tokType._nam) {
-            temp.addChild(trace_Assignment());
-        }
-        else if (thread.lookNext() == tokType._EOS)
-        {
-            thread.matchNext(tokType._EOS);
-            return temp;
-        }
-        else if (thread.lookNext() == tokType._for) {
-            trace_For();
-        }
+        thread.matchNext(tokType._brkt);
+        temp.addChild(trace_Statement());
+        temp.addChild(trace_Bool_Expression());
         thread.matchNext(tokType._EOS);
+        temp.addChild(trace_Statement());
+        thread.matchNext(tokType._bckt);
+        temp.addChild(trace_Block());
         return temp;
     }
 
-    //Лексический анализатор не корректно обрабатывает while для синтаксиса Pascal :(
-    public synNode trace_While()
-    {
-        return null;
+    //Обработчик правила while ::= "while" "(" boolean_expression ")" "{" block "}"
+    public synNode trace_While() {
+        thread.matchNext(tokType._whileP);
+        synNode temp = new synNode(synNode.synType._do_node);
+        thread.matchNext(tokType._brkt);
+        temp.addChild(trace_Bool_Expression());
+        thread.matchNext(tokType._bckt);
+        temp.addChild(trace_Block());
+        return temp;
     }
 
-    //Обработчик правила assignment ::= IDENTIFIER ":=" bool_expression ";"
-    public synNode trace_Assignment()
-    {
+    //Обработчик правила do ::= "do" "{" block "}" while "(" boolean_expression ")"
+    public synNode trace_Do() {
+        thread.matchNext(tokType._whileN);
+        synNode temp = new synNode(synNode.synType._do_node);
+        temp.addChild(trace_Block());
+        thread.matchNext(tokType._whileP);
+        thread.matchNext(tokType._brkt);
+        temp.addChild(trace_Bool_Expression());
+        thread.matchNext(tokType._bckt);
+        return temp;
+    }
+
+
+    //Обработчик правила assignment ::= IDENTIFIER "=" bool_expression ";"
+    public synNode trace_Assignment() {
         //thread->matchNext(_nam);
         synNode temp = new synNode(synNode.synType._assignment);
         temp.addChild(trace_Terminal(thread.getNext()));
@@ -499,21 +485,24 @@ public class SyntaxAnalyser {
         return temp;
     }
 
-    //Обработчик правила statement_body ::= assignment | bool_expression
-    public synNode trace_Statement_Body()
-    {
+    //Обработчик правила statement_body ::= empty | assignment | function
+    public synNode trace_Statement_Body() {
         synNode temp = new synNode(synNode.synType._statement_body);
-        if (thread.lookNext() == tokType._nam) {
-            temp.addChild(trace_Assignment());
-        } else {
-            temp.addChild(trace_Bool_Expression());
+        if (thread.lookNext() == tokType._EOS) {
+            return temp;
+        }
+        else{
+            if (((thread.pos + 1) < (thread.pointer.length - 1)) && thread.lookNext2() == tokType._opbr) {
+                //temp.addChild(trace_Method());
+            } else {
+                temp.addChild(trace_Assignment());
+            }
         }
         return temp;
     }
 
     //Обработчик правила statement ::= statement_body ";"
-    public synNode trace_Statement()
-    {
+    public synNode trace_Statement() {
         synNode temp = new synNode(synNode.synType._statement);
         temp.addChild(trace_Statement_Body());
         thread.matchNext(tokType._EOS);
@@ -521,16 +510,17 @@ public class SyntaxAnalyser {
     }
 
     //Обработчик правила compound_statement ::= if | for | statement
-    public synNode trace_Compound()
-    {
+    public synNode trace_Compound() {
         synNode temp = new synNode(synNode.synType._compound_statement);
-        switch (thread.lookNext())
-        {
+        switch (thread.lookNext()) {
             case _for:
                 temp = trace_For();
                 break;
             case _whileP:
                 temp = trace_While();
+                break;
+            case _whileN:
+                temp = trace_Do();
                 break;
             default:
                 temp = trace_Statement();
@@ -540,10 +530,10 @@ public class SyntaxAnalyser {
     }
 
     //Обработчик правила block ::= "begin" compound_statement "end" | "begin" "end"
-    public synNode trace_Block()
-    {
+    public synNode trace_Block() {
         thread.matchNext(tokType._opbr); //opbr = begin
-        synNode temp = new synNode(synNode.synType._block);;
+        synNode temp = new synNode(synNode.synType._block);
+        ;
         if (thread.lookNext() == tokType._ocbr) {
             thread.matchNext(tokType._ocbr); //ocbr = end
         } else {
@@ -553,20 +543,20 @@ public class SyntaxAnalyser {
             thread.matchNext(tokType._ocbr); //ocbr = end
         }
         return temp;
-    };
+    }
 
-    //Обработчик правила program ::= block "."
-    public synNode trace_Program()
-    {
+    ;
+
+    //Обработчик правила program ::= block
+    public synNode trace_Program() {
         synNode temp = new synNode(synNode.synType._prgm);
         temp.addChild(trace_Block());
-        thread.matchNext(tokType._fldDt);
+        //thread.matchNext(tokType._fldDt);
         return temp;
     }
 
     //Запуск синтаксического анализа
-    public synNode synAnalysis(lxNode[] nodes)
-    {
+    public synNode synAnalysis(lxNode[] nodes) {
         thread = new lexData(nodes);
         return trace_Program();
     }
@@ -580,7 +570,7 @@ class synNode {
         _assignment,
         _bool_expression, _bool_factor,
         _expression, _term, _signed_factor, _unsigned_factor,
-        _terminal
+        _terminal, _while_node, _do_node
     }
 
     synType ndOp;                //код типа лексемы
@@ -726,6 +716,11 @@ class lexData {
     //"Подсмотреть" следующий символ (он остается в начале потока)
     public tokType lookNext() {
         return this.pointer[pos].ndOp;
+    }
+
+    //"Подсмотреть" символ за следующим(на 2 вперед)
+    public tokType lookNext2() {
+        return this.pointer[pos + 1].ndOp;
     }
 
     //Сравнить следующий символ потока с данным:
