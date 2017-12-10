@@ -1,26 +1,21 @@
-import java.lang.reflect.Array;
+import static java.nio.file.StandardOpenOption.*;
+import java.nio.file.*;
+import java.io.*;
 import java.util.ArrayList;
 public class CodeGenerator {
     String path ="d:\\MyTest.txt";
     String text;
 
     public void writeToFile() {
-        /*try
-        {
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
+        byte data[] = text.getBytes();
+        Path p = Paths.get("./logfile.txt");
 
-            clearText();
-            File.AppendAllText(path, text);
+        try (OutputStream out = new BufferedOutputStream(
+                Files.newOutputStream(p, CREATE, APPEND))) {
+            out.write(data, 0, data.length);
+        } catch (IOException x) {
+            System.err.println(x);
         }
-
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.ToString());
-        }
-        */
     }
 
     public CodeGenerator(String path) {
@@ -30,11 +25,6 @@ public class CodeGenerator {
 
     lxNode[] nd;
     char[] imgBuf;
-
-    void error() {
-        System.out.print("\n\nFix an error and try again later\n\n");
-        System.exit(0);
-    }
 
     class node{
         String name;
@@ -100,7 +90,7 @@ public class CodeGenerator {
         while(nd[finish].ndOp!=tokType._opbz){
             finish++;
         }
-        generateBlock(start,finish);
+        generateBlock(start,finish,types);
         if (!types.isEmpty()) {
             for (int i = 0; i < types.size(); i++) {
                 text += "pop eax\n";
@@ -118,130 +108,29 @@ public class CodeGenerator {
             }
             switch (nd[i].ndOp){
                 case _nam:
+                    generateAss();
                     break;
                 case _for:
+                    generateFor();
                     break;
                 case _whileN:
+                    generateWhileN();
                     break;
                 case _whileP:
+                    generateWhileP();
                     break;
             }
         }
-    }
-
-    private void generateFor(){
-
-    }
-
-    private void generateOp(lxNode[] nd, int i) {
-
-    }
-
-    private void getOperation(lxNode nd) {
-        switch (nd.ndOp) {
-            case _asAdd:
-            case _add:
-                text += "add ";
-                break;
-            case _asSub:
-            case _sub:
-                text += "sub ";
-                break;
-            case _asMul:
-            case _mul:
-                text += "imul ";
-                break;
-            case _asDiv:
-            case _div:
-                text += "idiv ";
-                break;
-            case _inr:
-                text += "inc ";
-                break;
-            case _dcr:
-                text += "dcr ";
-                break;
-            case _ixbz:
-                text += "imul ecx, " + step + "h\n";
-                text += "add ";
-                break;
-        }
-    }
-
-    private int searchIndex(lxNode[] nd, lxNode nx) {
-        for (int i = 0; i < nd.length; i++) {
-            if (nx == nd[i]) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private node searchNode(lxNode nd) {
-        node nx = null;
-        SemanticAnalyser sa = new SemanticAnalyser();
-        for (int i = 0; i < id.length; i++) {
-            if (sa.compare_keys(id[i].name, getName(nd).ToCharArray())) {
-                nx = id[i];
-            }
-        }
-        return nx;
     }
 
     private String getName(lxNode nd) {
         String name = "";
-        int k = (int) nd.start;
+        int k = nd.start;
         while (imgBuf[k] != 0) {
             name += imgBuf[k];
             k++;
         }
         return name;
-    }
-
-    private String getType(node nd) {
-        if (nd.type == tokType._int) {
-            if (nd.lenght == 0) {
-                return "word ";
-            } else {
-                return "dword ";
-            }
-        } else if (nd.type == tokType._float) {
-            if (nd.lenght == 2) {
-                return "qword ";
-            } else {
-                return "dword ";
-            }
-        } else {
-            return "qword ";
-        }
-    }
-
-    private String ValuetoHex(lxNode nd, node curr) {
-        String s = getName(nd);
-        if (curr.type == tokType._int) {
-            int value = (int) Double.Parse(s);
-            if (curr.lenght == 0) {
-                text += "mov edx, " + value.ToString("X") + "h\n";
-                return "dx";
-            } else {
-                return value.ToString("X") + "h";
-            }
-        } else if (curr.type == tokType._float) {
-            double value = Double.Parse(s);
-            if (curr.lenght == 2) {
-                text += "mov edx, " + value.ToString("X") + "h\n";
-                return "dx";
-            } else {
-                return value.ToString("X") + "h";
-            }
-        } else {
-            return "";
-        }
-    }
-
-    private void clearText() {
-        text = text.Replace("push eax\r\npop eax\r\n", "");
-        text = text.Replace("push ecx\r\npop ecx\r\n", "");
     }
 
 }
