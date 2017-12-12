@@ -423,7 +423,10 @@ public class SyntaxAnalyser {
     //                        | term "-" expression
     public synNode trace_Expression() {
         synNode temp = new synNode(synNode.synType._expression);
-        temp.addChild(trace_Term());
+        if (thread.lookNext()==tokType._nam&&thread.lookNext2()==tokType._brkt){
+            temp.addChild(trace_Method());
+        }
+        else{temp.addChild(trace_Term());}
         switch (thread.lookNext()) {
             case _add:
                 temp.addChild(trace_Terminal(thread.getNext()));
@@ -447,7 +450,7 @@ public class SyntaxAnalyser {
         thread.matchNext(tokType._EOS);
         temp.addChild(trace_Statement());
         thread.matchNext(tokType._bckt);
-        temp.addChild(trace_Block());
+        temp.addChild(trace_Block(false));
         return temp;
     }
 
@@ -458,7 +461,7 @@ public class SyntaxAnalyser {
         thread.matchNext(tokType._brkt);
         temp.addChild(trace_Bool_Expression());
         thread.matchNext(tokType._bckt);
-        temp.addChild(trace_Block());
+        temp.addChild(trace_Block(false));
         return temp;
     }
 
@@ -466,7 +469,7 @@ public class SyntaxAnalyser {
     public synNode trace_Do() {
         thread.matchNext(tokType._whileN);
         synNode temp = new synNode(synNode.synType._do_node);
-        temp.addChild(trace_Block());
+        temp.addChild(trace_Block(false));
         thread.matchNext(tokType._whileP);
         thread.matchNext(tokType._brkt);
         temp.addChild(trace_Bool_Expression());
@@ -477,27 +480,56 @@ public class SyntaxAnalyser {
 
     //Обработчик правила assignment ::= IDENTIFIER "=" bool_expression ";"
     public synNode trace_Assignment() {
-        //thread->matchNext(_nam);
+        thread.matchNext(tokType._nam);
         synNode temp = new synNode(synNode.synType._assignment);
-        temp.addChild(trace_Terminal(thread.getNext()));
+        //temp.addChild(trace_Terminal(thread.getNext()));
         thread.matchNext(tokType._ass);
-        temp.addChild(trace_Bool_Expression());
+        //thread.matchNext(tokType._nam);
+        //temp.addChild(trace_Terminal(thread.getNext()));
+        temp.addChild(trace_Expression());
         return temp;
     }
 
-    //Обработчик правила statement_body ::= empty | assignment | function
+    //Обработчик правила statement_body ::= empty | assignment | method
     public synNode trace_Statement_Body() {
         synNode temp = new synNode(synNode.synType._statement_body);
+        if (thread.lookNext() == tokType._int &&thread.lookNext2() == tokType._nam) {
+            thread.matchNext(tokType._int);
+        }
         if (thread.lookNext() == tokType._EOS) {
             return temp;
         }
         else{
             if (((thread.pos + 1) < (thread.pointer.length - 1)) && thread.lookNext2() == tokType._opbr) {
-                //temp.addChild(trace_Method());
+                temp.addChild(trace_Method());
             } else {
                 temp.addChild(trace_Assignment());
             }
         }
+        return temp;
+    }
+
+    //Обработчик правила method ::= IDENTIFIER "(" method | IDENTIFIER | empty
+    //                              | "," method
+    //                              | ")"
+    public synNode trace_Method() {
+        synNode temp = new synNode(synNode.synType._method_node);
+        thread.matchNext(tokType._nam);
+        //temp.addChild(trace_Terminal(thread.getNext()));
+        thread.matchNext(tokType._brkt);
+        while (thread.lookNext()!=tokType._bckt)
+        {
+            if (((thread.pos + 1) < (thread.pointer.length - 1)) && thread.lookNext2() == tokType._opbr) {
+                temp.addChild(trace_Method());
+            } else {
+                thread.matchNext(tokType._nam);
+            }
+            if(thread.lookNext()==tokType._bckt){
+                break;
+            }
+            thread.matchNext(tokType._comma);
+        }
+        thread.matchNext(tokType._bckt);
         return temp;
     }
 
@@ -509,7 +541,7 @@ public class SyntaxAnalyser {
         return temp;
     }
 
-    //Обработчик правила compound_statement ::= if | for | statement
+    //Обработчик правила compound_statement ::= for| while | do | statement
     public synNode trace_Compound() {
         synNode temp = new synNode(synNode.synType._compound_statement);
         switch (thread.lookNext()) {
@@ -529,29 +561,91 @@ public class SyntaxAnalyser {
         return temp;
     }
 
-    //Обработчик правила block ::= "begin" compound_statement "end" | "begin" "end"
-    public synNode trace_Block() {
+    //Обработчик правила block ::= "{" compound_statement "end" | "begin" "}"
+    public synNode trace_Block(boolean type) {
         thread.matchNext(tokType._opbr); //opbr = begin
         synNode temp = new synNode(synNode.synType._block);
-        ;
         if (thread.lookNext() == tokType._ocbr) {
             thread.matchNext(tokType._ocbr); //ocbr = end
         } else {
-            while (thread.lookNext() != tokType._ocbr) {
+            while ((thread.lookNext() != tokType._ocbr)&&(thread.lookNext() != tokType._return)) {
                 temp.addChild(trace_Compound());
+            }
+            if (type) {
+                thread.matchNext(tokType._return);
+                temp.addChild(trace_Expression());
+                thread.matchNext(tokType._EOS);
             }
             thread.matchNext(tokType._ocbr); //ocbr = end
         }
         return temp;
     }
 
-    ;
+    public boolean trace_Type(boolean type) {
+        switch (thread.lookNext()) {
+            case _int:
+                thread.matchNext(tokType._int);
+                break;
+            default:
+                thread.matchNext(tokType._void);
+                type = false;
+                break;
+        }
+        return type;
+    }
 
-    //Обработчик правила program ::= block
+    boolean flag1 = false;
+
+    //Обработчик правила funcions ::= модификатор_доступа static TYPE indentificator "(" type identificator
+    public synNode trace_Function() {
+        if (thread.lookNext()==tokType._public){
+            thread.matchNext(tokType._public);
+            thread.matchNext(tokType._static);
+            flag1 = true;
+        }
+        boolean type = true;
+        type = trace_Type(type);
+        thread.matchNext(tokType._nam); //opbr = begin
+        synNode temp = new synNode(synNode.synType._function_node);
+        thread.matchNext(tokType._brkt);
+        if (flag1){
+            thread.matchNext(tokType._string);
+            thread.matchNext(tokType._ixbr);
+            thread.matchNext(tokType._scbr);
+            thread.matchNext(tokType._nam);
+            thread.matchNext(tokType._bckt);
+        }
+        else{
+            while (thread.lookNext()!=tokType._bckt)
+            {
+                if(thread.lookNext()==tokType._bool){
+                    thread.matchNext(tokType._bool);
+                }
+                else{
+                    thread.matchNext(tokType._int);
+                }
+                thread.matchNext(tokType._nam);
+                if(thread.lookNext()==tokType._bckt) {
+                    break;
+                }
+                thread.matchNext(tokType._comma);
+            }
+            thread.matchNext(tokType._bckt);
+        }
+        temp.addChild(trace_Block(type));
+        return temp;
+    }
+
+    //Обработчик правила program ::= "class" indentificator "{" functions "}"
     public synNode trace_Program() {
-        synNode temp = new synNode(synNode.synType._prgm);
-        temp.addChild(trace_Block());
-        //thread.matchNext(tokType._fldDt);
+        thread.matchNext(tokType._class);
+        synNode temp = new synNode(synNode.synType._class);
+        thread.matchNext(tokType._nam);
+        thread.matchNext(tokType._opbr); //opbr = begin
+        while (thread.lookNext() != tokType._ocbr) {
+            temp.addChild(trace_Function());
+        }
+        thread.matchNext(tokType._ocbr); //ocbr = end
         return temp;
     }
 
@@ -564,13 +658,13 @@ public class SyntaxAnalyser {
 
 class synNode {
     public enum synType {
-        _prgm, _block, _compound_statement,
+        _class, _block, _compound_statement,
         _if_node, _if_without_else, _if_with_else, _for_node,
         _statement, _statement_body,
         _assignment,
         _bool_expression, _bool_factor,
         _expression, _term, _signed_factor, _unsigned_factor,
-        _terminal, _while_node, _do_node
+        _terminal, _while_node, _do_node, _method_node, _function_node
     }
 
     synType ndOp;                //код типа лексемы
@@ -625,7 +719,7 @@ class synNode {
                     "(", ")",    // відкриті і закриті дужки порядку і функцій 5
                     "{", "}",    // відкриті і закриті дужки даних 6
                     "_eosP", "eosS",    // паралельні та послідовні
-                    ";", "_comma", "_cln", "_qmrk",// ; ", : ?
+                    ";", ",", "_cln", "_qmrk",// ; ", : ?
                     "_asOr", "_asAnd", "_asXor", "_asAdd",        //|= =& =^ =+
                     "_asSub", "_asMul", "_asDiv", "_asMod",    // -= *= /= %=
                     "_asShr", "_asShl", "_ass", "_dcr", "_inr",    // <<= >>= = -- ++
@@ -731,7 +825,7 @@ class lexData {
         if (this.pointer[pos].ndOp.ordinal() == elem.ordinal()) {
             pos++;
         } else {
-            System.out.println("Error on " + pos + " lexem: \n have to be \"" + synNode.tokTypeStr[elem.ordinal()] + "\" but we have \"" + synNode.tokTypeStr[this.pointer[pos].ndOp.ordinal()] + "\"");
+            System.out.println("Error on " + pos + " lexem: \n have to be \"" + synNode.tokTypeStr[elem.ordinal()+1] + "\" but we have \"" + synNode.tokTypeStr[this.pointer[pos].ndOp.ordinal()+1] + "\"");
             flag = false;
             System.exit(0);
         }

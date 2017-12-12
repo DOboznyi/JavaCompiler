@@ -3,7 +3,7 @@ import java.nio.file.*;
 import java.io.*;
 import java.util.ArrayList;
 public class CodeGenerator {
-    String path ="d:\\MyTest.txt";
+    /*String path ="d:\\MyTest.txt";
     String text;
 
     public void writeToFile() {
@@ -132,5 +132,7 @@ public class CodeGenerator {
         }
         return name;
     }
+
+    */
 
 }

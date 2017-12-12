@@ -1,12 +1,14 @@
 import java.util.Arrays;
+
+
+
 public class SemanticAnalyser {
     char[] imgBuf;
     private int difV;
 
-    SemanticAnalyser(char[] imgBuf) {
+    SemanticAnalyser(char[] imgBuf,indStrUS[] ndxNds) {
         this.imgBuf = imgBuf;
-        indStrUS x = new indStrUS(null,null,null,0 );
-        Arrays.fill(ndxNds,x);
+        this.ndxNds = ndxNds;
     }
 
     int lnFPtr = 32;    // довжина покажчика сегмента
@@ -118,136 +120,135 @@ public class SemanticAnalyser {
                     new recrdSMA(tokType._ixbz, datType._d.getValue() + cdPtr, 64, datType._si.getValue(), 32, datType._d.getValue(), 32),
             };
 
-    recrdTPD[]	tpTbl=	// таблиця модифікованих типів
-            {       new recrdTPD(tokType._void,tokType._void,tokType._void,datType._v.getValue(),0),
-                    new recrdTPD(tokType._void,tokType._extern,tokType._void,datType._v.getValue()+cdExt,0),
-                    new recrdTPD(tokType._void,tokType._const,tokType._void,datType._v.getValue()+cdCns,0),
-                    new recrdTPD(tokType._void,tokType._register,tokType._void,datType._v.getValue()+cdReg,0),
-                    new recrdTPD(tokType._void,tokType._auto,tokType._void,datType._v.getValue()+cdAut,0),
-                    new recrdTPD(tokType._void,tokType._static,tokType._void,datType._v.getValue()+cdStt,0),
-                    new recrdTPD(tokType._enum,tokType._void,tokType._void,datType._enm.getValue(),32),
-                    new recrdTPD(tokType._enum,tokType._extern,tokType._void,datType._enm.getValue()+cdExt,32),
-                    new recrdTPD(tokType._enum,tokType._const,tokType._void,datType._enm.getValue()+cdCns,32),
-                    new recrdTPD(tokType._enum,tokType._register,tokType._void,datType._enm.getValue()+cdReg,32),
-                    new recrdTPD(tokType._enum,tokType._auto,tokType._void,datType._enm.getValue()+cdAut,32),
-                    new recrdTPD(tokType._enum,tokType._static,tokType._void,datType._enm.getValue()+cdStt,32),
-                    new recrdTPD(tokType._struct,tokType._void,tokType._void,datType._str.getValue(),0),
-                    new recrdTPD(tokType._struct,tokType._extern,tokType._void,datType._str.getValue()+cdExt,0),
-                    new recrdTPD(tokType._struct,tokType._const,tokType._void,datType._str.getValue()+cdCns,0),
-                    new recrdTPD(tokType._struct,tokType._register,tokType._void,datType._str.getValue()+cdReg,0),
-                    new recrdTPD(tokType._struct,tokType._auto,tokType._void,datType._str.getValue()+cdAut,0),
-                    new recrdTPD(tokType._struct,tokType._static,tokType._void,datType._str.getValue()+cdStt,0),
-                    new recrdTPD(tokType._union,tokType._void,tokType._void,datType._unn.getValue(),0),
-                    new recrdTPD(tokType._union,tokType._extern,tokType._void,datType._unn.getValue()+cdExt,0),
-                    new recrdTPD(tokType._union,tokType._const,tokType._void,datType._unn.getValue()+cdCns,0),
-                    new recrdTPD(tokType._union,tokType._register,tokType._void,datType._unn.getValue()+cdReg,0),
-                    new recrdTPD(tokType._union,tokType._auto,tokType._void,datType._unn.getValue()+cdAut,0),
-                    new recrdTPD(tokType._union,tokType._static,tokType._void,datType._unn.getValue()+cdStt,0),
-                    new recrdTPD(tokType._unsigned,tokType._void,tokType._void,datType._ui.getValue(),32),
-                    new recrdTPD(tokType._unsigned,tokType._extern,tokType._void,datType._ui.getValue()+cdExt,32),
-                    new recrdTPD(tokType._unsigned,tokType._const,tokType._void,datType._ui.getValue()+cdCns,32),
-                    new recrdTPD(tokType._unsigned,tokType._register,tokType._void,datType._ui.getValue()+cdReg,32),
-                    new recrdTPD(tokType._unsigned,tokType._auto,tokType._void,datType._ui.getValue()+cdAut,32),
-                    new recrdTPD(tokType._unsigned,tokType._static,tokType._void,datType._ui.getValue()+cdStt,32),
-                    new recrdTPD(tokType._signed,tokType._void,tokType._void,datType._si.getValue(),32),
-                    new recrdTPD(tokType._signed,tokType._extern,tokType._void,datType._si.getValue()+cdExt,32),
-                    new recrdTPD(tokType._signed,tokType._const,tokType._void,datType._si.getValue()+cdCns,32),
-                    new recrdTPD(tokType._signed,tokType._register,tokType._void,datType._si.getValue()+cdReg,32),
-                    new recrdTPD(tokType._signed,tokType._auto,tokType._void,datType._si.getValue()+cdAut,3),
-                    new recrdTPD(tokType._signed,tokType._static,tokType._void,datType._si.getValue()+cdStt,32),
-                    new recrdTPD(tokType._char,tokType._unsigned,tokType._void,datType._uc.getValue(),8),
-                    new recrdTPD(tokType._char,tokType._unsigned,tokType._extern,datType._uc.getValue()+cdExt,8),
-                    new recrdTPD(tokType._char,tokType._unsigned,tokType._const,datType._uc.getValue()+cdCns,8),
-                    new recrdTPD(tokType._char,tokType._unsigned,tokType._register,datType._uc.getValue()+cdReg,8),
-                    new recrdTPD(tokType._char,tokType._unsigned,tokType._auto,datType._uc.getValue()+cdAut,8),
-                    new recrdTPD(tokType._char,tokType._unsigned,tokType._static,datType._uc.getValue()+cdStt,8),
-                    new recrdTPD(tokType._char,tokType._signed,tokType._void,datType._sc.getValue(),8),//4
-                    new recrdTPD(tokType._char,tokType._signed,tokType._extern,datType._sc.getValue()+cdExt,8),//4
-                    new recrdTPD(tokType._char,tokType._signed,tokType._const,datType._sc.getValue()+cdCns,8),//4
-                    new recrdTPD(tokType._char,tokType._signed,tokType._register,datType._sc.getValue()+cdReg,8),//4
-                    new recrdTPD(tokType._char,tokType._signed,tokType._auto,datType._sc.getValue()+cdAut,8),//4
-                    new recrdTPD(tokType._char,tokType._signed,tokType._static,datType._sc.getValue()+cdStt,8),//4
-                    new recrdTPD(tokType._char,tokType._void,tokType._void,datType._sc.getValue(),8),
-                    new recrdTPD(tokType._char,tokType._extern,tokType._void,datType._sc.getValue()+cdExt,8),
-                    new recrdTPD(tokType._char,tokType._const,tokType._void,datType._sc.getValue()+cdCns,8),
-                    new recrdTPD(tokType._char,tokType._register,tokType._void,datType._sc.getValue()+cdReg,8),
-                    new recrdTPD(tokType._char,tokType._auto,tokType._void,datType._sc.getValue()+cdAut,8),
-                    new recrdTPD(tokType._char,tokType._static,tokType._void,datType._sc.getValue()+cdStt,8),
-                    new recrdTPD(tokType._short,tokType._void,tokType._void,datType._si.getValue(),16),
-                    new recrdTPD(tokType._short,tokType._extern,tokType._void,datType._si.getValue()+cdExt,16),
-                    new recrdTPD(tokType._short,tokType._const,tokType._void,datType._si.getValue()+cdCns,16),
-                    new recrdTPD(tokType._short,tokType._register,tokType._void,datType._si.getValue()+cdReg,16),
-                    new recrdTPD(tokType._short,tokType._auto,tokType._void,datType._si.getValue()+cdAut,16),
-                    new recrdTPD(tokType._short,tokType._static,tokType._void,datType._si.getValue()+cdStt,16),
-                    new recrdTPD(tokType._short,tokType._unsigned,tokType._void,datType._ui.getValue(),16),
-                    new recrdTPD(tokType._short,tokType._unsigned,tokType._extern,datType._ui.getValue()+cdExt,16),
-                    new recrdTPD(tokType._short,tokType._unsigned,tokType._const,datType._ui.getValue()+cdCns,16),
-                    new recrdTPD(tokType._short,tokType._unsigned,tokType._register,datType._ui.getValue()+cdReg,16),
-                    new recrdTPD(tokType._short,tokType._unsigned,tokType._auto,datType._ui.getValue()+cdAut,16),
-                    new recrdTPD(tokType._short,tokType._unsigned,tokType._static,datType._ui.getValue()+cdStt,16),
-                    new recrdTPD(tokType._short,tokType._signed,tokType._void,datType._si.getValue(),16),
-                    new recrdTPD(tokType._short,tokType._signed,tokType._extern,datType._si.getValue()+cdExt,16),
-                    new recrdTPD(tokType._short,tokType._signed,tokType._const,datType._si.getValue()+cdCns,16),
-                    new recrdTPD(tokType._short,tokType._signed,tokType._register,datType._si.getValue()+cdReg,16),
-                    new recrdTPD(tokType._short,tokType._signed,tokType._auto,datType._si.getValue()+cdAut,16),
-                    new recrdTPD(tokType._short,tokType._signed,tokType._static,datType._si.getValue()+cdStt,16),
-                    new recrdTPD(tokType._int,tokType._void,tokType._void,datType._si.getValue(),32),//9
-                    new recrdTPD(tokType._int,tokType._extern,tokType._void,datType._si.getValue()+cdExt,32),//9
-                    new recrdTPD(tokType._int,tokType._const,tokType._void,datType._si.getValue()+cdCns,32),//9
-                    new recrdTPD(tokType._int,tokType._register,tokType._void,datType._si.getValue()+cdReg,32),//9
-                    new recrdTPD(tokType._int,tokType._auto,tokType._void,datType._si.getValue()+cdAut,32),//9
-                    new recrdTPD(tokType._int,tokType._static,tokType._void,datType._si.getValue()+cdStt,32),//9
-                    new recrdTPD(tokType._int,tokType._unsigned,tokType._void,datType._ui.getValue(),32),
-                    new recrdTPD(tokType._int,tokType._unsigned,tokType._extern,datType._ui.getValue()+cdExt,32),
-                    new recrdTPD(tokType._int,tokType._unsigned,tokType._const,datType._ui.getValue()+cdCns,32),
-                    new recrdTPD(tokType._int,tokType._unsigned,tokType._register,datType._ui.getValue()+cdReg,32),
-                    new recrdTPD(tokType._int,tokType._unsigned,tokType._auto,datType._ui.getValue()+cdAut,32),
-                    new recrdTPD(tokType._int,tokType._unsigned,tokType._static,datType._ui.getValue()+cdStt,32),
-                    new recrdTPD(tokType._int,tokType._signed,tokType._void,datType._si.getValue(),32),
-                    new recrdTPD(tokType._int,tokType._signed,tokType._extern,datType._si.getValue()+cdExt,32),
-                    new recrdTPD(tokType._int,tokType._signed,tokType._const,datType._si.getValue()+cdCns,32),
-                    new recrdTPD(tokType._int,tokType._signed,tokType._register,datType._si.getValue()+cdReg,32),
-                    new recrdTPD(tokType._int,tokType._signed,tokType._auto,datType._si.getValue()+cdAut,32),
-                    new recrdTPD(tokType._int,tokType._signed,tokType._static,datType._si.getValue()+cdStt,32),
-                    new recrdTPD(tokType._int,tokType._long,tokType._void,datType._si.getValue(),32),
-                    new recrdTPD(tokType._int,tokType._long,tokType._extern,datType._si.getValue()+cdExt,32),
-                    new recrdTPD(tokType._int,tokType._long,tokType._const,datType._si.getValue()+cdCns,32),
-                    new recrdTPD(tokType._int,tokType._long,tokType._register,datType._si.getValue()+cdReg,32),
-                    new recrdTPD(tokType._int,tokType._long,tokType._auto,datType._si.getValue()+cdAut,32),
-                    new recrdTPD(tokType._int,tokType._long,tokType._static,datType._si.getValue()+cdStt,32),
-                    new recrdTPD(tokType._long,tokType._void,tokType._void,datType._si.getValue(),32),
-                    new recrdTPD(tokType._long,tokType._extern,tokType._void,datType._si.getValue()+cdExt,32),
-                    new recrdTPD(tokType._long,tokType._const,tokType._void,datType._si.getValue()+cdCns,32),
-                    new recrdTPD(tokType._long,tokType._register,tokType._void,datType._si.getValue()+cdReg,32),
-                    new recrdTPD(tokType._long,tokType._auto,tokType._void,datType._si.getValue()+cdAut,32),
-                    new recrdTPD(tokType._long,tokType._const,tokType._void,datType._si.getValue()+cdStt,32),
-                    new recrdTPD(tokType._float,tokType._void,tokType._void,datType._f.getValue(),32),//14
-                    new recrdTPD(tokType._float,tokType._extern,tokType._void,datType._f.getValue()+cdExt,32),//14
-                    new recrdTPD(tokType._float,tokType._const,tokType._void,datType._f.getValue()+cdCns,32),//14
-                    new recrdTPD(tokType._float,tokType._register,tokType._void,datType._f.getValue()+cdReg,32),//14
-                    new recrdTPD(tokType._float,tokType._auto,tokType._void,datType._f.getValue()+cdAut,32),//14
-                    new recrdTPD(tokType._float,tokType._static,tokType._void,datType._f.getValue()+cdStt,32),//14
-                    new recrdTPD(tokType._double,tokType._void,tokType._void,datType._d.getValue(),64),
-                    new recrdTPD(tokType._double,tokType._extern,tokType._void,datType._d.getValue()+cdExt,64),
-                    new recrdTPD(tokType._double,tokType._const,tokType._void,datType._d.getValue()+cdCns,64),
-                    new recrdTPD(tokType._double,tokType._register,tokType._void,datType._d.getValue()+cdReg,64),
-                    new recrdTPD(tokType._double,tokType._auto,tokType._void,datType._d.getValue()+cdAut,64),
-                    new recrdTPD(tokType._double,tokType._static,tokType._void,datType._d.getValue()+cdStt,64),
-                    new recrdTPD(tokType._double,tokType._long,tokType._void,datType._ld.getValue(),80),
-                    new recrdTPD(tokType._double,tokType._long,tokType._extern,datType._ld.getValue()+cdExt,80),
-                    new recrdTPD(tokType._double,tokType._long,tokType._const,datType._ld.getValue()+cdCns,80),
-                    new recrdTPD(tokType._double,tokType._long,tokType._register,datType._ld.getValue()+cdReg,80),
-                    new recrdTPD(tokType._double,tokType._long,tokType._auto,datType._ld.getValue()+cdAut,80),
-                    new recrdTPD(tokType._double,tokType._long,tokType._static,datType._ld.getValue()+cdStt,80),
-                    new recrdTPD(tokType._class,tokType._void,tokType._void,datType._cls.getValue(),0),
-                    new recrdTPD(tokType._class,tokType._extern,tokType._void,datType._cls.getValue()+cdExt,0),
-                    new recrdTPD(tokType._class,tokType._const,tokType._void,datType._cls.getValue()+cdCns,0),
-                    new recrdTPD(tokType._class,tokType._register,tokType._void,datType._cls.getValue()+cdReg,0),
-                    new recrdTPD(tokType._class,tokType._auto,tokType._void,datType._cls.getValue()+cdAut,0),
-                    new recrdTPD(tokType._class,tokType._static,tokType._void,datType._cls.getValue()+cdStt,0),
-                    new recrdTPD(tokType._class,tokType._volatile,tokType._void,datType._cls.getValue()+cdVlt,0),
+    recrdTPD[] tpTbl =    // таблиця модифікованих типів
+            {new recrdTPD(tokType._void, tokType._void, tokType._void, datType._v.getValue(), 0),
+                    new recrdTPD(tokType._void, tokType._extern, tokType._void, datType._v.getValue() + cdExt, 0),
+                    new recrdTPD(tokType._void, tokType._const, tokType._void, datType._v.getValue() + cdCns, 0),
+                    new recrdTPD(tokType._void, tokType._register, tokType._void, datType._v.getValue() + cdReg, 0),
+                    new recrdTPD(tokType._void, tokType._auto, tokType._void, datType._v.getValue() + cdAut, 0),
+                    new recrdTPD(tokType._void, tokType._static, tokType._void, datType._v.getValue() + cdStt, 0),
+                    new recrdTPD(tokType._enum, tokType._void, tokType._void, datType._enm.getValue(), 32),
+                    new recrdTPD(tokType._enum, tokType._extern, tokType._void, datType._enm.getValue() + cdExt, 32),
+                    new recrdTPD(tokType._enum, tokType._const, tokType._void, datType._enm.getValue() + cdCns, 32),
+                    new recrdTPD(tokType._enum, tokType._register, tokType._void, datType._enm.getValue() + cdReg, 32),
+                    new recrdTPD(tokType._enum, tokType._auto, tokType._void, datType._enm.getValue() + cdAut, 32),
+                    new recrdTPD(tokType._enum, tokType._static, tokType._void, datType._enm.getValue() + cdStt, 32),
+                    new recrdTPD(tokType._struct, tokType._void, tokType._void, datType._str.getValue(), 0),
+                    new recrdTPD(tokType._struct, tokType._extern, tokType._void, datType._str.getValue() + cdExt, 0),
+                    new recrdTPD(tokType._struct, tokType._const, tokType._void, datType._str.getValue() + cdCns, 0),
+                    new recrdTPD(tokType._struct, tokType._register, tokType._void, datType._str.getValue() + cdReg, 0),
+                    new recrdTPD(tokType._struct, tokType._auto, tokType._void, datType._str.getValue() + cdAut, 0),
+                    new recrdTPD(tokType._struct, tokType._static, tokType._void, datType._str.getValue() + cdStt, 0),
+                    new recrdTPD(tokType._union, tokType._void, tokType._void, datType._unn.getValue(), 0),
+                    new recrdTPD(tokType._union, tokType._extern, tokType._void, datType._unn.getValue() + cdExt, 0),
+                    new recrdTPD(tokType._union, tokType._const, tokType._void, datType._unn.getValue() + cdCns, 0),
+                    new recrdTPD(tokType._union, tokType._register, tokType._void, datType._unn.getValue() + cdReg, 0),
+                    new recrdTPD(tokType._union, tokType._auto, tokType._void, datType._unn.getValue() + cdAut, 0),
+                    new recrdTPD(tokType._union, tokType._static, tokType._void, datType._unn.getValue() + cdStt, 0),
+                    new recrdTPD(tokType._unsigned, tokType._void, tokType._void, datType._ui.getValue(), 32),
+                    new recrdTPD(tokType._unsigned, tokType._extern, tokType._void, datType._ui.getValue() + cdExt, 32),
+                    new recrdTPD(tokType._unsigned, tokType._const, tokType._void, datType._ui.getValue() + cdCns, 32),
+                    new recrdTPD(tokType._unsigned, tokType._register, tokType._void, datType._ui.getValue() + cdReg, 32),
+                    new recrdTPD(tokType._unsigned, tokType._auto, tokType._void, datType._ui.getValue() + cdAut, 32),
+                    new recrdTPD(tokType._unsigned, tokType._static, tokType._void, datType._ui.getValue() + cdStt, 32),
+                    new recrdTPD(tokType._signed, tokType._void, tokType._void, datType._si.getValue(), 32),
+                    new recrdTPD(tokType._signed, tokType._extern, tokType._void, datType._si.getValue() + cdExt, 32),
+                    new recrdTPD(tokType._signed, tokType._const, tokType._void, datType._si.getValue() + cdCns, 32),
+                    new recrdTPD(tokType._signed, tokType._register, tokType._void, datType._si.getValue() + cdReg, 32),
+                    new recrdTPD(tokType._signed, tokType._auto, tokType._void, datType._si.getValue() + cdAut, 3),
+                    new recrdTPD(tokType._signed, tokType._static, tokType._void, datType._si.getValue() + cdStt, 32),
+                    new recrdTPD(tokType._char, tokType._unsigned, tokType._void, datType._uc.getValue(), 8),
+                    new recrdTPD(tokType._char, tokType._unsigned, tokType._extern, datType._uc.getValue() + cdExt, 8),
+                    new recrdTPD(tokType._char, tokType._unsigned, tokType._const, datType._uc.getValue() + cdCns, 8),
+                    new recrdTPD(tokType._char, tokType._unsigned, tokType._register, datType._uc.getValue() + cdReg, 8),
+                    new recrdTPD(tokType._char, tokType._unsigned, tokType._auto, datType._uc.getValue() + cdAut, 8),
+                    new recrdTPD(tokType._char, tokType._unsigned, tokType._static, datType._uc.getValue() + cdStt, 8),
+                    new recrdTPD(tokType._char, tokType._signed, tokType._void, datType._sc.getValue(), 8),//4
+                    new recrdTPD(tokType._char, tokType._signed, tokType._extern, datType._sc.getValue() + cdExt, 8),//4
+                    new recrdTPD(tokType._char, tokType._signed, tokType._const, datType._sc.getValue() + cdCns, 8),//4
+                    new recrdTPD(tokType._char, tokType._signed, tokType._register, datType._sc.getValue() + cdReg, 8),//4
+                    new recrdTPD(tokType._char, tokType._signed, tokType._auto, datType._sc.getValue() + cdAut, 8),//4
+                    new recrdTPD(tokType._char, tokType._signed, tokType._static, datType._sc.getValue() + cdStt, 8),//4
+                    new recrdTPD(tokType._char, tokType._void, tokType._void, datType._sc.getValue(), 8),
+                    new recrdTPD(tokType._char, tokType._extern, tokType._void, datType._sc.getValue() + cdExt, 8),
+                    new recrdTPD(tokType._char, tokType._const, tokType._void, datType._sc.getValue() + cdCns, 8),
+                    new recrdTPD(tokType._char, tokType._register, tokType._void, datType._sc.getValue() + cdReg, 8),
+                    new recrdTPD(tokType._char, tokType._auto, tokType._void, datType._sc.getValue() + cdAut, 8),
+                    new recrdTPD(tokType._char, tokType._static, tokType._void, datType._sc.getValue() + cdStt, 8),
+                    new recrdTPD(tokType._short, tokType._void, tokType._void, datType._si.getValue(), 16),
+                    new recrdTPD(tokType._short, tokType._extern, tokType._void, datType._si.getValue() + cdExt, 16),
+                    new recrdTPD(tokType._short, tokType._const, tokType._void, datType._si.getValue() + cdCns, 16),
+                    new recrdTPD(tokType._short, tokType._register, tokType._void, datType._si.getValue() + cdReg, 16),
+                    new recrdTPD(tokType._short, tokType._auto, tokType._void, datType._si.getValue() + cdAut, 16),
+                    new recrdTPD(tokType._short, tokType._static, tokType._void, datType._si.getValue() + cdStt, 16),
+                    new recrdTPD(tokType._short, tokType._unsigned, tokType._void, datType._ui.getValue(), 16),
+                    new recrdTPD(tokType._short, tokType._unsigned, tokType._extern, datType._ui.getValue() + cdExt, 16),
+                    new recrdTPD(tokType._short, tokType._unsigned, tokType._const, datType._ui.getValue() + cdCns, 16),
+                    new recrdTPD(tokType._short, tokType._unsigned, tokType._register, datType._ui.getValue() + cdReg, 16),
+                    new recrdTPD(tokType._short, tokType._unsigned, tokType._auto, datType._ui.getValue() + cdAut, 16),
+                    new recrdTPD(tokType._short, tokType._unsigned, tokType._static, datType._ui.getValue() + cdStt, 16),
+                    new recrdTPD(tokType._short, tokType._signed, tokType._void, datType._si.getValue(), 16),
+                    new recrdTPD(tokType._short, tokType._signed, tokType._extern, datType._si.getValue() + cdExt, 16),
+                    new recrdTPD(tokType._short, tokType._signed, tokType._const, datType._si.getValue() + cdCns, 16),
+                    new recrdTPD(tokType._short, tokType._signed, tokType._register, datType._si.getValue() + cdReg, 16),
+                    new recrdTPD(tokType._short, tokType._signed, tokType._auto, datType._si.getValue() + cdAut, 16),
+                    new recrdTPD(tokType._short, tokType._signed, tokType._static, datType._si.getValue() + cdStt, 16),
+                    new recrdTPD(tokType._int, tokType._void, tokType._void, datType._si.getValue(), 32),//9
+                    new recrdTPD(tokType._int, tokType._extern, tokType._void, datType._si.getValue() + cdExt, 32),//9
+                    new recrdTPD(tokType._int, tokType._const, tokType._void, datType._si.getValue() + cdCns, 32),//9
+                    new recrdTPD(tokType._int, tokType._register, tokType._void, datType._si.getValue() + cdReg, 32),//9
+                    new recrdTPD(tokType._int, tokType._auto, tokType._void, datType._si.getValue() + cdAut, 32),//9
+                    new recrdTPD(tokType._int, tokType._static, tokType._void, datType._si.getValue() + cdStt, 32),//9
+                    new recrdTPD(tokType._int, tokType._unsigned, tokType._void, datType._ui.getValue(), 32),
+                    new recrdTPD(tokType._int, tokType._unsigned, tokType._extern, datType._ui.getValue() + cdExt, 32),
+                    new recrdTPD(tokType._int, tokType._unsigned, tokType._const, datType._ui.getValue() + cdCns, 32),
+                    new recrdTPD(tokType._int, tokType._unsigned, tokType._register, datType._ui.getValue() + cdReg, 32),
+                    new recrdTPD(tokType._int, tokType._unsigned, tokType._auto, datType._ui.getValue() + cdAut, 32),
+                    new recrdTPD(tokType._int, tokType._unsigned, tokType._static, datType._ui.getValue() + cdStt, 32),
+                    new recrdTPD(tokType._int, tokType._signed, tokType._void, datType._si.getValue(), 32),
+                    new recrdTPD(tokType._int, tokType._signed, tokType._extern, datType._si.getValue() + cdExt, 32),
+                    new recrdTPD(tokType._int, tokType._signed, tokType._const, datType._si.getValue() + cdCns, 32),
+                    new recrdTPD(tokType._int, tokType._signed, tokType._register, datType._si.getValue() + cdReg, 32),
+                    new recrdTPD(tokType._int, tokType._signed, tokType._auto, datType._si.getValue() + cdAut, 32),
+                    new recrdTPD(tokType._int, tokType._signed, tokType._static, datType._si.getValue() + cdStt, 32),
+                    new recrdTPD(tokType._int, tokType._long, tokType._void, datType._si.getValue(), 32),
+                    new recrdTPD(tokType._int, tokType._long, tokType._extern, datType._si.getValue() + cdExt, 32),
+                    new recrdTPD(tokType._int, tokType._long, tokType._const, datType._si.getValue() + cdCns, 32),
+                    new recrdTPD(tokType._int, tokType._long, tokType._register, datType._si.getValue() + cdReg, 32),
+                    new recrdTPD(tokType._int, tokType._long, tokType._auto, datType._si.getValue() + cdAut, 32),
+                    new recrdTPD(tokType._int, tokType._long, tokType._static, datType._si.getValue() + cdStt, 32),
+                    new recrdTPD(tokType._long, tokType._void, tokType._void, datType._si.getValue(), 32),
+                    new recrdTPD(tokType._long, tokType._extern, tokType._void, datType._si.getValue() + cdExt, 32),
+                    new recrdTPD(tokType._long, tokType._const, tokType._void, datType._si.getValue() + cdCns, 32),
+                    new recrdTPD(tokType._long, tokType._register, tokType._void, datType._si.getValue() + cdReg, 32),
+                    new recrdTPD(tokType._long, tokType._auto, tokType._void, datType._si.getValue() + cdAut, 32),
+                    new recrdTPD(tokType._long, tokType._const, tokType._void, datType._si.getValue() + cdStt, 32),
+                    new recrdTPD(tokType._float, tokType._void, tokType._void, datType._f.getValue(), 32),//14
+                    new recrdTPD(tokType._float, tokType._extern, tokType._void, datType._f.getValue() + cdExt, 32),//14
+                    new recrdTPD(tokType._float, tokType._const, tokType._void, datType._f.getValue() + cdCns, 32),//14
+                    new recrdTPD(tokType._float, tokType._register, tokType._void, datType._f.getValue() + cdReg, 32),//14
+                    new recrdTPD(tokType._float, tokType._auto, tokType._void, datType._f.getValue() + cdAut, 32),//14
+                    new recrdTPD(tokType._float, tokType._static, tokType._void, datType._f.getValue() + cdStt, 32),//14
+                    new recrdTPD(tokType._double, tokType._void, tokType._void, datType._d.getValue(), 64),
+                    new recrdTPD(tokType._double, tokType._extern, tokType._void, datType._d.getValue() + cdExt, 64),
+                    new recrdTPD(tokType._double, tokType._const, tokType._void, datType._d.getValue() + cdCns, 64),
+                    new recrdTPD(tokType._double, tokType._register, tokType._void, datType._d.getValue() + cdReg, 64),
+                    new recrdTPD(tokType._double, tokType._auto, tokType._void, datType._d.getValue() + cdAut, 64),
+                    new recrdTPD(tokType._double, tokType._static, tokType._void, datType._d.getValue() + cdStt, 64),
+                    new recrdTPD(tokType._double, tokType._long, tokType._void, datType._ld.getValue(), 80),
+                    new recrdTPD(tokType._double, tokType._long, tokType._extern, datType._ld.getValue() + cdExt, 80),
+                    new recrdTPD(tokType._double, tokType._long, tokType._const, datType._ld.getValue() + cdCns, 80),
+                    new recrdTPD(tokType._double, tokType._long, tokType._register, datType._ld.getValue() + cdReg, 80),
+                    new recrdTPD(tokType._double, tokType._long, tokType._auto, datType._ld.getValue() + cdAut, 80),
+                    new recrdTPD(tokType._double, tokType._long, tokType._static, datType._ld.getValue() + cdStt, 80),
+                    new recrdTPD(tokType._class, tokType._void, tokType._void, datType._cls.getValue(), 0),
+                    new recrdTPD(tokType._class, tokType._extern, tokType._void, datType._cls.getValue() + cdExt, 0),
+                    new recrdTPD(tokType._class, tokType._const, tokType._void, datType._cls.getValue() + cdCns, 0),
+                    new recrdTPD(tokType._class, tokType._register, tokType._void, datType._cls.getValue() + cdReg, 0),
+                    new recrdTPD(tokType._class, tokType._auto, tokType._void, datType._cls.getValue() + cdAut, 0),
+                    new recrdTPD(tokType._class, tokType._static, tokType._void, datType._cls.getValue() + cdStt, 0),
+                    new recrdTPD(tokType._class, tokType._volatile, tokType._void, datType._cls.getValue() + cdVlt, 0),
             };
-
 
 
     recrdTMD[] tpLxMd =
@@ -328,20 +329,7 @@ public class SemanticAnalyser {
                     datType._v    // Eo - Неприпустиме сполучення операцій
             };
 
-    class indStrUS// структура індексу у вигляді двійкового дерева
-    {
-        lxNode pKyStr;//вказівник на вузол
-        indStrUS pLtPtr;//вказівник вліво
-        indStrUS pRtPtr;//вказівник вправо
-        int dif;
 
-        public indStrUS(lxNode pKyStr, indStrUS pLtPtr, indStrUS pRtPtr, int dif) {
-            this.pKyStr = pKyStr;
-            this.pLtPtr = pLtPtr;
-            this.pRtPtr = pRtPtr;
-            this.dif = dif;
-        }
-    }
 
     ;
 
@@ -360,7 +348,7 @@ public class SemanticAnalyser {
 
     class recrdTPD    // структура рядка таблиці модифікованих типів
     {
-        tokType[] kTp=new tokType[3];// примірник структури ключа
+        tokType[] kTp = new tokType[3];// примірник структури ключа
         int dTp;//enum datType примірник функціональної частини
         int ln;    // базова довжина даних типу
 
@@ -370,8 +358,8 @@ public class SemanticAnalyser {
             this.ln = ln;
         }
 
-        public recrdTPD(tokType kTp1,tokType kTp2,tokType kTp3, int dTp, int ln) {
-            tokType[] kTpx={kTp1,kTp2,kTp3};
+        public recrdTPD(tokType kTp1, tokType kTp2, tokType kTp3, int dTp, int ln) {
+            tokType[] kTpx = {kTp1, kTp2, kTp3};
             this.kTp = kTpx;
             this.dTp = dTp;
             this.ln = ln;
@@ -476,33 +464,33 @@ public class SemanticAnalyser {
     }
 
     // порівняння рядків
-    int cmpStr(char[] s1, char[] s2)
-    {
+    int cmpStr(char[] s1, char[] s2) {
         int n = 0;
-        while (s1[n] == s2[n] && s1[n] != 0)n++;
+        while (s1[n] == s2[n] && s1[n] != 0) n++;
         return s1[n] - s2[n];
     }
+
     // порівняння рядків
 // порівняння терміналів за відношенням порядку
     int cmpTrm(lxNode k0, lxNode kArg)//cmpKys
     {
         int x1 = k0.start;
         char[] y1 = new char[1024];
-        int j=0;
-        while (imgBuf[x1]!=0){
-            y1[j]=imgBuf[x1];
+        int j = 0;
+        while (imgBuf[x1] != 0) {
+            y1[j] = imgBuf[x1];
             x1++;
             j++;
         }
         int x2 = kArg.start;
         char[] y2 = new char[1024];
-        j=0;
-        while (imgBuf[x2]!=0){
-            y2[j]=imgBuf[x2];
+        j = 0;
+        while (imgBuf[x2] != 0) {
+            y2[j] = imgBuf[x2];
             x2++;
             j++;
         }
-        int i = cmpStr(y1,y2);
+        int i = cmpStr(y1, y2);
         if (i != 0) return i;
         return k0.stkLength - kArg.stkLength; // порівняння номерів модулів
     }
@@ -569,7 +557,7 @@ public class SemanticAnalyser {
         return datType.values()[tpCod];
     }
 
-    indStrUS[] ndxNds=new indStrUS[50];
+    indStrUS[] ndxNds = new indStrUS[50];
     recrdSMA ftImp = new recrdSMA(tokType._nil, datType._v.getValue(), 0, datType._v.getValue(), 0, datType._v.getValue(), 0);// таблиця припустимості типів для операцій
     int nbBlk = 0;
     tokType[] lPrv = {tokType._void, tokType._void, tokType._void};// масив для накопичення ключових слів типа
@@ -577,8 +565,8 @@ public class SemanticAnalyser {
     int SmAnlzr(lxNode nd,    // покажчик на початок масиву вузлів
                 int nR)    // номер кореневого вузла
     {//enum datType
-        int tPrv=0, tPst;    // типи вузлів попередника та наступника
-        int lnPrv=0, lnPst=0;    // довжини попередника та наступника
+        int tPrv = 0, tPst;    // типи вузлів попередника та наступника
+        int lnPrv = 0, lnPst = 0;    // довжини попередника та наступника
         char[] name;        // робочий покажчик на і'мя
         recrdTPD pRc;
         indStrUS pRtNdx;// робочий покажчик вузла двійкового дерева імен
@@ -619,14 +607,14 @@ public class SemanticAnalyser {
                 error(nd);
             }
             int x1 = pRtNdx.pKyStr.start;
-            int j=0;
-            while (imgBuf[x1]!=0){
+            int j = 0;
+            while (imgBuf[x1] != 0) {
                 j++;
             }
             char[] y1 = new char[j];
-            j=0;
-            while (imgBuf[x1]!=0){
-                y1[j]=imgBuf[x1];
+            j = 0;
+            while (imgBuf[x1] != 0) {
+                y1[j] = imgBuf[x1];
                 x1++;
                 j++;
             }
@@ -776,7 +764,7 @@ public class SemanticAnalyser {
         public int getValue() {
             return id;
         }
-        }
+    }
 
     ;
 
@@ -814,7 +802,7 @@ public class SemanticAnalyser {
         FMode = 0;
 // ndOp = n;;
         //nd.pstNd = (lxNode) (bcnst32_buf[nInBg]);
-        if (nd.resLength != autStat.S2s.ordinal()) disp = convInt(disp, (char)10, (char)10, 0xFFFFFFFF);
+        if (nd.resLength != autStat.S2s.ordinal()) disp = convInt(disp, (char) 10, (char) 10, 0xFFFFFFFF);
         switch (autStat.values()[nd.resLength]) {
             case S1c:
                 nd.resLength = 32;
@@ -843,7 +831,7 @@ public class SemanticAnalyser {
                         FMode &= ~FPWR;
                         dispP = disp + 1;
                         if ((ltrClsV[imgBuf[dispP]].getValue() & 0xf0) == ltrTypeS.ltrsignS.getValue()) disp = disp + 1;
-                        disp = convInt(disp + 1, (char)10, (char)10, 0);
+                        disp = convInt(disp + 1, (char) 10, (char) 10, 0);
                         if (value.s64.lo32 != 0) {
                             if (imgBuf[dispP] != '-') nPwr += value.s64.lo32;
                             else nPwr -= value.s64.lo32;
@@ -866,9 +854,9 @@ public class SemanticAnalyser {
                 }
                 break;
             case S2s:
-                strcpy(bcnst8_buf,nIcBg, imgBuf,nImBg + 1);
+                strcpy(bcnst8_buf, nIcBg, imgBuf, nImBg + 1);
                 nd.pstNd = new lxNode(null, null, null, 0, 0, 0, 0, 0, 0, 0, bcnst8_buf[nIcBg]);
-                nIcBg = nIcCr = nIcBg + strlen(imgBuf,nImBg + 1);
+                nIcBg = nIcCr = nIcBg + strlen(imgBuf, nImBg + 1);
                 bcnst8_buf[nIcCr - 1] = 0; // вилучити повторення
                 return 0;
             //break;
@@ -900,25 +888,26 @@ public class SemanticAnalyser {
         return n32;
     }
 
-    void strcpy( char [] destination,int startdes, char [] source,int sourcedes ){
-        int i=sourcedes;
-        int j=startdes;
-        while (source[i]!=0){
-            destination[j]=source[i];
+    void strcpy(char[] destination, int startdes, char[] source, int sourcedes) {
+        int i = sourcedes;
+        int j = startdes;
+        while (source[i] != 0) {
+            destination[j] = source[i];
             i++;
             j++;
         }
     }
 
-    int strlen( char [] source,int start){
-        int i=start;
+    int strlen(char[] source, int start) {
+        int i = start;
         int count = 0;
-        while (source[i]!=0){
+        while (source[i] != 0) {
             i++;
             count++;
         }
         return count;
     }
+
     //------------------------------------------------------------------------
   /* converting source program to lexeme string "wstr" */
     int convInt(int nc, char aSS, char sSS, int nb) {//try to skip space after constant base like 'b, 'd, 'h
@@ -943,7 +932,7 @@ public class SemanticAnalyser {
                     difV = (cwrk & 0xf);
                     difVM = 0;
                     if ((cwrk & 0x20) != 0) difVM = 15 & (aSS - 1);
-                    if ((FMode & FPWR)!=0) nPwr--;
+                    if ((FMode & FPWR) != 0) nPwr--;
                     for (i = 0; i <= n32; i += 2) {
                         value.s64.lo32 = bcnst32_buf[i + nInBg];
                         value.s64.hi32 = 0;
@@ -980,7 +969,7 @@ public class SemanticAnalyser {
                         difV = value.s64.hi32;
                         difVM = value1.s64.hi32;
                     }
-                    if ((difV | difVM)!=0) {
+                    if ((difV | difVM) != 0) {
                         n32++;
                         n32++;
                         bcnst32_buf[i + nInBg] = difV;
