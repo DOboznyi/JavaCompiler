@@ -10,10 +10,18 @@ public class Main {
         } while (x.nodes[nn].ndOp != tokType._EOF);
 
         SyntaxAnalyser SA = new SyntaxAnalyser();
-        synNode mainNode = SA.synAnalysis(x.nodes);
+        //synNode mainNode = SA.synAnalysis(x.nodes);
+
+        int nr=0; int nc=1; x.nodes[0].prnNd=-1;
+        do
+            nr=SA.nxtProd(x.nodes,nr,nc);
+        while(++nc<nn);
+
+        System.out.println("Syntax analyzing completed!");
+
         //System.out.println("Lexical analyzing completed!");
         //System.out.println("Error on " + 3 + " lexem: \n have to be \"" + "{" + "\" but we have \"" + "int" + "\"");
-        //System.out.println("Syntax analyzing completed!");
+        //
         //System.out.println("\nNon declared type!\n");
         //System.out.println("Error at x = " + 4 + " y = " + 1 + " \n");
         //System.out.println("Press Any Key To Continue...");

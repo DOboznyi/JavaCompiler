@@ -451,9 +451,9 @@ public class LexicalAnalyser {
             y++;
             if (cl == 10) cl = getnextchar();
         }
-        while (cl == 9) {
-            cl = getnextchar();
-        }
+        //while (cl == 9) {
+        //    cl = getnextchar();
+        //}
         x++;
         c = (char) cl;
         if (cl == -1) c = (char) 0; //c=13;
@@ -469,9 +469,10 @@ public class LexicalAnalyser {
     private char getnextchar() {
         if (!flag) {
             System.out.println("Input file path:");
-            Scanner scan = new Scanner(System.in);
+            //Scanner scan = new Scanner(System.in);
 
-            path = scan.nextLine();
+            //path = scan.nextLine();
+            path = "d:/1.h";
             char[] text1 = {};
             File f = new File(path);
             if (f.exists() && !f.isDirectory()) {
@@ -495,7 +496,7 @@ public class LexicalAnalyser {
             } else {
                 System.out.println("File not found!");
                 System.out.println("Press Any Key To Continue...");
-                scan.nextLine();
+                //scan.nextLine();
                 System.exit(0);
             }
 
@@ -718,6 +719,9 @@ public class LexicalAnalyser {
     int cmpStr(char[] s1, char[] s2, int start) {
         int n = 0;
         int k = start;
+        while(s2[k]==13||s2[k]==9||s2[k]==10){
+            k++;
+        }
         while ((s1[n] == s2[k]) && (s1[n] != 0)) {
             n++;
             k++;
