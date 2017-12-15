@@ -24,4 +24,18 @@ public class lxNode
         this.stkLength = stkLength;
         this.start = start;
     }
+
+    public lxNode(tokType tok){
+        this.ndOp = tok;
+        this.prvNd = null;
+        this.pstNd = null;;
+        this.dataType = 0;
+        this.resLength = 0;
+        this.x = 0;
+        this.y = 0;
+        this.f = 0;
+        this.prnNd = 0;
+        this.stkLength = 0;
+        this.start = 0;
+    }
 }

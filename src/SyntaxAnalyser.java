@@ -247,6 +247,16 @@ public class SyntaxAnalyser {
             // _pnil
     };
 
+    public void makeTree(lxNode[] nd) {
+        int nr = 0;
+        int nc = 1;
+        nd[0].prnNd = -1;
+        do {
+            nr = nxtProd(nd, nr, nc);
+        }
+        while (nd[++nc] != null);
+    }
+
     public int nxtProd(lxNode[] nd,    // вказівник на початок масиву вузлів
                        int nR,   // номер кореневого вузла
                        int nC)   // номер поточного вузла
@@ -423,10 +433,11 @@ public class SyntaxAnalyser {
     //                        | term "-" expression
     public synNode trace_Expression() {
         synNode temp = new synNode(synNode.synType._expression);
-        if (thread.lookNext()==tokType._nam&&thread.lookNext2()==tokType._brkt){
+        if (thread.lookNext() == tokType._nam && thread.lookNext2() == tokType._brkt) {
             temp.addChild(trace_Method());
+        } else {
+            temp.addChild(trace_Term());
         }
-        else{temp.addChild(trace_Term());}
         switch (thread.lookNext()) {
             case _add:
                 temp.addChild(trace_Terminal(thread.getNext()));
@@ -493,13 +504,12 @@ public class SyntaxAnalyser {
     //Обработчик правила statement_body ::= empty | assignment | method
     public synNode trace_Statement_Body() {
         synNode temp = new synNode(synNode.synType._statement_body);
-        if (thread.lookNext() == tokType._int &&thread.lookNext2() == tokType._nam) {
+        if (thread.lookNext() == tokType._int && thread.lookNext2() == tokType._nam) {
             thread.matchNext(tokType._int);
         }
         if (thread.lookNext() == tokType._EOS) {
             return temp;
-        }
-        else{
+        } else {
             if (((thread.pos + 1) < (thread.pointer.length - 1)) && thread.lookNext2() == tokType._opbr) {
                 temp.addChild(trace_Method());
             } else {
@@ -517,14 +527,13 @@ public class SyntaxAnalyser {
         thread.matchNext(tokType._nam);
         //temp.addChild(trace_Terminal(thread.getNext()));
         thread.matchNext(tokType._brkt);
-        while (thread.lookNext()!=tokType._bckt)
-        {
+        while (thread.lookNext() != tokType._bckt) {
             if (((thread.pos + 1) < (thread.pointer.length - 1)) && thread.lookNext2() == tokType._opbr) {
                 temp.addChild(trace_Method());
             } else {
                 thread.matchNext(tokType._nam);
             }
-            if(thread.lookNext()==tokType._bckt){
+            if (thread.lookNext() == tokType._bckt) {
                 break;
             }
             thread.matchNext(tokType._comma);
@@ -568,12 +577,18 @@ public class SyntaxAnalyser {
         if (thread.lookNext() == tokType._ocbr) {
             thread.matchNext(tokType._ocbr); //ocbr = end
         } else {
-            while ((thread.lookNext() != tokType._ocbr)&&(thread.lookNext() != tokType._return)) {
+            while ((thread.lookNext() != tokType._ocbr) && (thread.lookNext() != tokType._return)) {
                 temp.addChild(trace_Compound());
             }
             if (type) {
                 thread.matchNext(tokType._return);
-                temp.addChild(trace_Expression());
+                if (thread.lookNext2() != tokType._EOS) {
+                    thread.insTok(tokType._brkt);
+                    thread.matchNext(tokType._brkt);
+                    temp.addChild(trace_Expression());
+                    thread.insTok(tokType._bckt);
+                    thread.matchNext(tokType._bckt);
+                }
                 thread.matchNext(tokType._EOS);
             }
             thread.matchNext(tokType._ocbr); //ocbr = end
@@ -598,7 +613,7 @@ public class SyntaxAnalyser {
 
     //Обработчик правила funcions ::= модификатор_доступа static TYPE indentificator "(" type identificator
     public synNode trace_Function() {
-        if (thread.lookNext()==tokType._public){
+        if (thread.lookNext() == tokType._public) {
             thread.matchNext(tokType._public);
             thread.matchNext(tokType._static);
             flag1 = true;
@@ -608,27 +623,29 @@ public class SyntaxAnalyser {
         thread.matchNext(tokType._nam); //opbr = begin
         synNode temp = new synNode(synNode.synType._function_node);
         thread.matchNext(tokType._brkt);
-        if (flag1){
+        if (flag1) {
             thread.matchNext(tokType._string);
             thread.matchNext(tokType._ixbr);
             thread.matchNext(tokType._scbr);
             thread.matchNext(tokType._nam);
             thread.matchNext(tokType._bckt);
-        }
-        else{
-            while (thread.lookNext()!=tokType._bckt)
-            {
-                if(thread.lookNext()==tokType._bool){
+        } else {
+            while (thread.lookNext() != tokType._bckt) {
+                if (thread.lookNext() == tokType._bool) {
                     thread.matchNext(tokType._bool);
-                }
-                else{
+                } else {
                     thread.matchNext(tokType._int);
                 }
                 thread.matchNext(tokType._nam);
-                if(thread.lookNext()==tokType._bckt) {
+                if (thread.lookNext() == tokType._bckt) {
                     break;
                 }
-                thread.matchNext(tokType._comma);
+                if (thread.lookNext() == tokType._comma) {
+                    thread.pointer[thread.pos].ndOp = tokType._EOS;
+                    thread.matchNext(tokType._EOS);
+                } else {
+                    thread.matchNext(tokType._comma);
+                }
             }
             thread.matchNext(tokType._bckt);
         }
@@ -644,15 +661,23 @@ public class SyntaxAnalyser {
         thread.matchNext(tokType._opbr); //opbr = begin
         while (thread.lookNext() != tokType._ocbr) {
             temp.addChild(trace_Function());
+            thread.insTok(tokType._EOS);
+            thread.matchNext(tokType._EOS);
         }
         thread.matchNext(tokType._ocbr); //ocbr = end
         return temp;
     }
 
     //Запуск синтаксического анализа
-    public synNode synAnalysis(lxNode[] nodes) {
+    public int synAnalysis(lxNode[] nodes) {
         thread = new lexData(nodes);
-        return trace_Program();
+        trace_Program();
+        int size = 0;
+        while (thread.pointer[size].ndOp != tokType._nil) {
+            size++;
+        }
+        size--;
+        return size;
     }
 }
 
@@ -825,11 +850,18 @@ class lexData {
         if (this.pointer[pos].ndOp.ordinal() == elem.ordinal()) {
             pos++;
         } else {
-            System.out.println("Error on " + pos + " lexem: \n have to be \"" + synNode.tokTypeStr[elem.ordinal()+1] + "\" but we have \"" + synNode.tokTypeStr[this.pointer[pos].ndOp.ordinal()+1] + "\"");
+            System.out.println("Error on " + pos + " lexem: \n have to be \"" + synNode.tokTypeStr[elem.ordinal() + 1] + "\" but we have \"" + synNode.tokTypeStr[this.pointer[pos].ndOp.ordinal() + 1] + "\"");
             flag = false;
             System.exit(0);
         }
         return flag;
+    }
+
+    public void insTok(tokType tok) {
+        for (int i = pointer.length - 1; i > pos; i--) {
+            pointer[i] = pointer[i - 1];
+        }
+        pointer[pos] = new lxNode(tok);
     }
 
     //Получить следующий символ из входного потока.
