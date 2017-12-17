@@ -365,8 +365,10 @@ public class LexicalAnalyser {
 
     int cmpStr1(int start1,int start2){
         int count = 0;
-        while (imgBuf[start1]!=imgBuf[start2]){
+        while (imgBuf[start1]!=imgBuf[start2]&&imgBuf[start1] != 0&&imgBuf[start2] != 0){
             count++;
+            start1++;
+            start2++;
         }
         return count;
     }
@@ -670,7 +672,7 @@ public class LexicalAnalyser {
                 }
                 // якщо не знайдено
                 nodes[nNode].ndOp = tokType._nam;
-                //insBTr(nodes[nNode], ndxNds[pRtNdx]);
+                insBTr(nodes[nNode], ndxNds[pRtNdx]);
                 nImBg = nImCr;
                 if (c != ltrType.dlmeormr && c != ltrType.dlmaux) imgBuf[nImCr++] = l;
                 break;
@@ -694,7 +696,7 @@ public class LexicalAnalyser {
                     eNeut(nNode);
                 }      // фіксація помилки
                 nodes[nNode].dataType = (int) sP.ordinal();
-                //insBTr(nodes + nNode, pRtNdx);
+                insBTr(nodes[nNode], ndxNds[pRtNdx]);
                 nImBg = nImCr;
                 if (c != ltrType.dlmeormr && c != ltrType.dlmaux) imgBuf[nImCr++] = l;
                 break;

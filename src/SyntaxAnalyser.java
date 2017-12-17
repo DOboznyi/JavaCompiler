@@ -247,19 +247,20 @@ public class SyntaxAnalyser {
             // _pnil
     };
 
-    public void makeTree(lxNode[] nd) {
+    public void makeTree(lxNode[] nd,int start) {
         int nr = 0;
         int nc = 1;
         nd[0].prnNd = -1;
         do {
-            nr = nxtProd(nd, nr, nc);
+            nr = nxtProd(nd, nr, nc, start);
         }
         while (nd[++nc] != null);
     }
 
     public int nxtProd(lxNode[] nd,    // вказівник на початок масиву вузлів
                        int nR,   // номер кореневого вузла
-                       int nC)   // номер поточного вузла
+                       int nC,
+                       int start)   // номер поточного вузла
     {
         int n = nC - 1;     // номер попереднього вузла
         tokPrec pC = opPrF[nd[nC].ndOp.ordinal()];// передування поточного вузла
@@ -271,13 +272,13 @@ public class SyntaxAnalyser {
                 if (n != nC - 1 && nd[n].pstNd != null)        // перевірка необхідності вставки
                 {
                     nd[nC].prvNd = nd[n].pstNd;   // підготовка зв’язків
-                    nd[nC].prvNd.prnNd =/*nd+*/nC;
+                    nd[nC].prvNd.prnNd =/*nd+*/nC+start;
                 }   // для вставки вузла
                 if (opPrF[(int) nd[n].ndOp.ordinal()] == tokPrec.pskw && nd[n].prvNd == null)
                     nd[n].prvNd = nd[nC];
                 else
                     nd[n].pstNd = nd[nC];
-                nd[nC].prnNd =/*nd+*/n; // додавання піддерева
+                nd[nC].prnNd =/*nd+*/n+start; // додавання піддерева
                 return nR;
             }
             if (opPrG[(int) nd[n].ndOp.ordinal()] == pC && (nd[n].ndOp == tokType._brkt || nd[n].ndOp == tokType._ixbr || nd[n].ndOp == tokType._opbr || nd[n].ndOp == tokType._tdbr)) {
@@ -286,11 +287,11 @@ public class SyntaxAnalyser {
                 if (nd[nC].prnNd == -1) {
                     nR = nC;
                     nd[nR].prnNd = -1;
-                } else if (opPrF[nd[nd[nC].prnNd].ndOp.ordinal()] == tokPrec.pskw && nd[nC].ndOp.ordinal() < tokType._frkz.ordinal())
-                    nd[nd[nC].prnNd].prvNd = nd[nC];
-                else if (opPrF[nd[nd[nC].prnNd].ndOp.ordinal()] == tokPrec.pekw && nd[nC].ndOp == tokType._opbz) {
-                    nd[nd[nC].prnNd].prvNd = nd[nC];
-                    nd[nd[nC].prnNd].pstNd = null;
+                } else if (opPrF[nd[nd[nC].prnNd-start].ndOp.ordinal()] == tokPrec.pskw && nd[nC].ndOp.ordinal() < tokType._frkz.ordinal())
+                    nd[nd[nC].prnNd-start].prvNd = nd[nC];
+                else if (opPrF[nd[nd[nC].prnNd-start].ndOp.ordinal()] == tokPrec.pekw && nd[nC].ndOp == tokType._opbz) {
+                    nd[nd[nC].prnNd-start].prvNd = nd[nC];
+                    nd[nd[nC].prnNd-start].pstNd = null;
                 }
                 return nR;
             }
@@ -298,12 +299,18 @@ public class SyntaxAnalyser {
                     {nd[nC].prnNd=n; nd[nC].prvNd=nd[n].pstNd;
                     nd[n].pstNd->prnNd=nC; nd[n].pstNd= nd+nC;
                     return nR;}*/
-            n = nd[n].prnNd;
+            if (nd[n].prnNd!=-1){
+                n = nd[n].prnNd-start;
+            }
+            else
+            {
+                n = nd[n].prnNd;
+            }
             opPr = opPrG; // просування до кореню
         }
         //  if(n<=)	else
         nd[nC].prvNd = nd[nR];
-        nd[nR].prnNd =/*nd+*/nC;
+        nd[nR].prnNd =/*nd+*/nC+start;
         nR = nC;
         nd[nR].prnNd = -1;
         return nR;
