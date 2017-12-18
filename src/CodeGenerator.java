@@ -1,10 +1,14 @@
 import static java.nio.file.StandardOpenOption.*;
+
 import java.nio.file.*;
 import java.io.*;
 import java.util.ArrayList;
+
 public class CodeGenerator {
-    /*String path ="d:\\MyTest.txt";
+    String path = "d:\\MyTest.txt";
     String text;
+    String data;
+    int index=0;
 
     public void writeToFile() {
         byte data[] = text.getBytes();
@@ -26,101 +30,225 @@ public class CodeGenerator {
     lxNode[] nd;
     char[] imgBuf;
 
-    class node{
+    class node {
         String name;
         tokType type;
 
-        public node(tokType type, String name ) {
+        public node(tokType type, String name) {
             this.name = name;
             this.type = type;
         }
     }
 
+    String[] methods;
 
-    public void generateASM(lxNode[] nd, char[] imgBuf) {
-        this.nd = nd;
-        this.imgBuf = imgBuf;
-        text += ".data\n";
-        for (int i =1;i<nd.length;i++){
-            if (nd[i-1].ndOp==tokType._int&&nd[i].ndOp==tokType._nam){
-                String name = getName(nd[i]);
-                text += name +" dd 0";
+    public void generate_code(ArrayList<ArrayList<lxNode>> arr_methods_list, ArrayList<lxNode> nodes) {
+        methods = new String[arr_methods_list.size()];
+        for (int i = 0; i < arr_methods_list.size(); i++) {
+            lxNode type = arr_methods_list.get(i).get(0);
+            while (type.ndOp != tokType._void || type.ndOp != tokType._int) {
+                type = type.pstNd;
             }
-        }
-        text += ".code\n";
-        for (int i = 3; i < nd.length-1; i++) {
-            if (nd[i].ndOp==tokType._brkz&&nd[i-1].ndOp!=tokType._for){
-                    i++;
-                    while (nd[i].ndOp != tokType._brkz) {
-                        i++;
-                    }
-                    i++;
-            }
-            if ((nd[i].ndOp == tokType._void)||(nd[i].ndOp == tokType._int)){
-                tokType type = nd[i].ndOp;
-                i++;
-                String name = getName(nd[i]);
-                text += getName(nd[i]) + "proc\n";
-                ArrayList types = new ArrayList();
-                i+=2;
-                while (nd[i].ndOp!=tokType._brkz){
-                    types.add(new node(nd[i].ndOp,getName(nd[i+1])));
-                    i+=2;
-                    if(nd[i].ndOp==tokType._comma){
-                        i++;
-                    }
+            String name = getName(type.pstNd.prvNd);
+            lxNode temp = type.pstNd;
+            ArrayList<tokType> types = new ArrayList<>();
+            ArrayList<String> names = new ArrayList<>();
+            if (temp.pstNd != null) {
+                temp = temp.pstNd;
+                while (temp.ndOp != tokType._int) {
+                    types.add(temp.pstNd.ndOp);
+                    names.add(getName(temp.pstNd.pstNd));
+                    data += getName(temp.pstNd.pstNd) + "_" + name + " dd 0\n";
+                    temp = temp.prvNd;
                 }
-                i++;
-                generateMethod(type,types,i);
+                types.add(temp.pstNd.ndOp);
+                names.add(getName(temp.pstNd.pstNd));
+                data += getName(temp.pstNd.pstNd) + "_" + name + " dd 0\n";
             }
-        }
-        text += "end main";
-    }
-
-    private void generateMethod(tokType type,ArrayList types,int start){
-        if (!types.isEmpty()) {
-            text += "push ebp\nmov ebp, esp\n";
-            for (int i = 0; i < types.size(); i++) {
-                int ind = 4+4*(types.size()-1-i);
-                text += "mov eax,[ebp+"+ind+"]\npush eax\n";
+            lxNode start = nodes.get(type.prnNd);
+            while (start.ndOp != tokType._opbz) {
+                start = nodes.get(start.prnNd);
             }
-        }
-        int finish = start;
-        finish++;
-        while(nd[finish].ndOp!=tokType._opbz){
-            finish++;
-        }
-        generateBlock(start,finish,types);
-        if (!types.isEmpty()) {
-            for (int i = 0; i < types.size(); i++) {
-                text += "pop eax\n";
-            }
+            generate_code_method(type, name, types, names, start);
+            //text += "push ebp\nmov ebp, esp\n";
+            //for (int i = 0; i < types.size(); i++) {
+            //    int ind = 4+4*(types.size()-1-i);
+            //    text += "mov eax,[ebp+"+ind+"]\npush eax\n";
+            //}
         }
     }
 
-    private void generateBlock(int start, int finish,ArrayList types) {
-        if (finish - start == 1) {
-            return;
-        }
-        for (int i = start +1;i<finish-1;i++){
-            if (nd[i].ndOp==tokType._int){
-                i++;
-            }
-            switch (nd[i].ndOp){
-                case _nam:
-                    generateAss();
-                    break;
-                case _for:
-                    generateFor();
-                    break;
-                case _whileN:
-                    generateWhileN();
-                    break;
-                case _whileP:
-                    generateWhileP();
-                    break;
+    public String generate_code_method(lxNode type, String name, ArrayList<tokType> types, ArrayList<String> names, lxNode start) {
+        String res = name + " proc\n";
+        if (types.size() != 0) {
+            res += "push ebp\nmov ebp, esp\n";
+            for (int i = 0; i < types.size(); i++) {
+                int ind = 4 + 4 * (types.size() - 1 - i);
+                res += "mov eax,[ebp+" + ind + "]\nmov dword ptr [" + names.get(i) + "], eax\n";
             }
         }
+        if (start.pstNd != null) {
+            lxNode temp = start.pstNd;
+            while (temp.ndOp != tokType._EOS) {
+                temp = temp.prvNd;
+            }
+        }
+        res += name + " endp\n";
+        return res;
+    }
+
+    private String generate_code_block(lxNode start){
+        lxNode temp = start.pstNd;
+        while (temp.ndOp != tokType._EOS) {
+            temp = temp.prvNd;
+        }
+        return "";
+    }
+
+    private String generate_compound(String name, ArrayList<tokType> types, ArrayList<String> names, lxNode start) {
+        String res="";
+        lxNode temp = start;
+        if (start==null){
+            return res;
+        }
+        if (temp.ndOp == tokType._int) {
+            types.add(temp.ndOp);
+            names.add(getName(temp.pstNd.prvNd));
+            temp = temp.pstNd;
+        }
+        switch (temp.ndOp) {
+            case _ass:
+                res+=generateAss(name,types,names,temp);
+                break;
+            case _add:
+                generateAdd(name,types,names,temp);
+                break;
+            case _nam:
+                generateNam(name,types,names,temp);
+                break;
+            case _for:
+                generateFor(name,types,names,temp);
+                break;
+            case _whileP:
+                switch (temp.prvNd.ndOp){
+                    case _brkz:
+                        generateWhile(name,types,names,temp);
+                        break;
+                    case _repeat:
+                        generateRepeat(name,types,names,temp);
+                        break;
+                }
+                break;
+            case _ocbr:
+                 generateOcbr(name,types,names,temp);
+               break;
+            case _brkz:
+                //generateOp(name,types,names,temp);
+                break;
+        }
+        return res;
+    }
+
+    public String generateAss(String name, ArrayList<tokType> types, ArrayList<String> names, lxNode start){
+        String res="";
+        res+=generate_compound(name, types, names,start.pstNd);
+        res+="mov dword ptr["+getName(start.prvNd)+"_"+name+"], eax";
+        return res;
+    }
+
+    public String generateAdd(String name, ArrayList<tokType> types, ArrayList<String> names, lxNode start){
+        String res="";
+        res+=generate_compound(name, types, names,start.prvNd);
+        res+="push eax";
+        res+=generate_compound(name, types, names,start.pstNd);
+        res+="pop edx";
+        res+="add eax, edx";
+        return res;
+    }
+
+    public String generateNam(String name, ArrayList<tokType> types, ArrayList<String> names, lxNode start){
+        String res="";
+        res+="mov eax, dword ptr["+getName(start.prvNd)+"_"+name+"]";
+        return res;
+    }
+
+    public String generateOcbr(String name, ArrayList<tokType> types, ArrayList<String> names, lxNode start){
+        String res="";
+        int value = Integer.parseInt(getName(start));
+        res+="mov eax, "+value;
+        return res;
+    }
+
+    public String generateFor(String name, ArrayList<tokType> types, ArrayList<String> names, lxNode start){
+        String res="";
+        res+=generate_compound(name, types, names, start.prvNd.pstNd.prvNd.prvNd); //start condition
+        res+="jmp LOOP"+(index+1);
+        int starti = index;
+        res+="LOOP"+index+":\n";
+        index++;
+        res+=generate_compound(name, types, names, start.prvNd.pstNd.pstNd);
+        res+="LOOP"+index+":\n";
+        int id = index+1;
+        index+=2;
+        res+=generate_bool(name, types, names, start.prvNd.pstNd.prvNd.pstNd,"LOOP"+id);
+        res+=generate_code_block(start.pstNd);
+        res+="jmp LOOP"+starti+"\n";
+        res+="LOOP"+id+":\n";
+        return res;
+    }
+
+    public String generateWhile(String name, ArrayList<tokType> types, ArrayList<String> names, lxNode start){
+        String res="";
+        int starti = index;
+        res+="LOOP"+index+":\n";
+        index++;
+        res+=generate_bool(name, types, names, start.prvNd.pstNd,"LOOP"+index);
+        int id = index;
+        index++;
+        res+=generate_code_block(start.pstNd);
+        res+="jmp LOOP"+starti+"\n";
+        res+="LOOP"+id+":\n";
+        return res;
+    }
+
+    public String generateRepeat(String name, ArrayList<tokType> types, ArrayList<String> names, lxNode start){
+        String res="";
+        int starti = index;
+        res+="LOOP"+index+":\n";
+        index++;
+        int id = index;
+        index++;
+        res+=generate_code_block(start.pstNd);
+        res+=generate_bool(name, types, names, start.prvNd.pstNd,"LOOP"+id);
+        res+="jmp LOOP"+starti+"\n";
+        res+="LOOP"+id+":\n";
+        return res;
+    }
+
+    private String generate_bool(String name, ArrayList<tokType> types, ArrayList<String> names, lxNode start,String loop) {
+        String res="";
+        lxNode temp = start;
+        switch (temp.ndOp) {//_lt, _le, _eq, _ne, _ge, _gt,       // < <= == != >= >
+            case _lt:
+                res += generateAss(name, types, names, temp);
+                break;
+            case _le:
+                generateAdd(name, types, names, temp);
+                break;
+            case _eq:
+                generateNam(name, types, names, temp);
+                break;
+            case _ne:
+                generateFor(name, types, names, temp);
+                break;
+            case _ge:
+                generateFor(name, types, names, temp);
+                break;
+            case _gt:
+                generateFor(name, types, names, temp);
+                break;
+        }
+        return res;
     }
 
     private String getName(lxNode nd) {
@@ -133,6 +261,7 @@ public class CodeGenerator {
         return name;
     }
 
-    */
-
+    private tokType getType(String name){
+        return null;
+    }
 }
