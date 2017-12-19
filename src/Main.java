@@ -4,7 +4,7 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello World!");
         LexicalAnalyser x = new LexicalAnalyser();
-        int nn = -1;
+        int nn;
         do {
             nn = x.LxAnlzr();
         } while (x.nodes[nn].ndOp != tokType._EOF);
@@ -14,7 +14,7 @@ public class Main {
         x.nodes = SA.thread.pointer;
 
 
-        ArrayList<lxNode> arr_class_list = new ArrayList<lxNode>();
+        ArrayList<lxNode> arr_class_list = new ArrayList<>();
 
         int i;
         for (i = 0; i < size; i++) {
@@ -36,13 +36,13 @@ public class Main {
         boolean flag = false;
         int a = 0;
         int num = 0;
-        int start = i;
+        int start;
         for (; i < size; i++) {
             if (i > size - 2) {
                 break;
             }
             start = i;
-            arr_methods_list.add(new ArrayList<lxNode>());
+            arr_methods_list.add(new ArrayList<>());
             while (a != 0 || !flag) {
                 if (i >= size - 2) {
                     break;
@@ -81,14 +81,14 @@ public class Main {
                     }
                 }
                 if (f){
-                    arr_methods_list.get(num).get(8).prnNd = 6;
+                    arr_methods_list.get(num).get(8).prnNd = 6+start;
                     arr_methods_list.get(num).get(8).pstNd = null;
                     arr_methods_list.get(num).get(8).prvNd = null;
                     arr_methods_list.get(num).get(6).prvNd = arr_methods_list.get(num).get(8);
                     arr_methods_list.get(num).get(7).prvNd = arr_methods_list.get(num).get(8);
 
-                    arr_methods_list.get(num).get(6).prnNd = 5;
-                    arr_methods_list.get(num).get(7).prnNd = 5;
+                    arr_methods_list.get(num).get(6).prnNd = 5+start;
+                    arr_methods_list.get(num).get(7).prnNd = 5+start;
                     arr_methods_list.get(num).get(6).pstNd = null;
                     arr_methods_list.get(num).get(7).pstNd = null;
                     arr_methods_list.get(num).get(5).pstNd = arr_methods_list.get(num).get(6);
@@ -97,28 +97,28 @@ public class Main {
                     arr_methods_list.get(num).get(3).prvNd = null;
                     arr_methods_list.get(num).get(3).pstNd = null;
 
-                    arr_methods_list.get(num).get(5).prnNd = 4;
-                    arr_methods_list.get(num).get(3).prnNd = 4;
+                    arr_methods_list.get(num).get(5).prnNd = 4+start;
+                    arr_methods_list.get(num).get(3).prnNd = 4+start;
                     arr_methods_list.get(num).get(4).pstNd = arr_methods_list.get(num).get(5);
                     arr_methods_list.get(num).get(9).pstNd = arr_methods_list.get(num).get(5);
                     arr_methods_list.get(num).get(4).prvNd = arr_methods_list.get(num).get(3);
                     arr_methods_list.get(num).get(9).prvNd = arr_methods_list.get(num).get(3);
 
-                    arr_methods_list.get(num).get(4).prnNd = 2;
-                    arr_methods_list.get(num).get(9).prnNd = 2;
+                    arr_methods_list.get(num).get(4).prnNd = 2+start;
+                    arr_methods_list.get(num).get(9).prnNd = 2+start;
                     arr_methods_list.get(num).get(4).ndOp = tokType._brkz;
                     arr_methods_list.get(num).get(9).ndOp = tokType._brkz;
-                    arr_methods_list.get(num).get(1).prnNd = 2;
+                    arr_methods_list.get(num).get(1).prnNd = 2+start;
                     arr_methods_list.get(num).get(1).prvNd = null;
                     arr_methods_list.get(num).get(1).pstNd = null;
                     arr_methods_list.get(num).get(2).prvNd = arr_methods_list.get(num).get(1);
                     arr_methods_list.get(num).get(2).pstNd = arr_methods_list.get(num).get(4);
 
-                    arr_methods_list.get(num).get(2).prnNd = 0;
+                    arr_methods_list.get(num).get(2).prnNd = start;
                     arr_methods_list.get(num).get(0).prvNd = null;
                     arr_methods_list.get(num).get(0).pstNd = arr_methods_list.get(num).get(2);
 
-                    arr_methods_list.get(num).get(0).prnNd = 10;
+                    arr_methods_list.get(num).get(0).prnNd = 10+start;
                     arr_methods_list.get(num).get(10).prvNd = arr_methods_list.get(num).get(0);
                     arr_methods_list.get(num).get(arr_methods_list.get(num).size()-1).prvNd = arr_methods_list.get(num).get(0);
                 }
@@ -131,7 +131,6 @@ public class Main {
         }
 
 
-        i = 0;
         ArrayList<lxNode> nodes = new ArrayList<>();
         int last_method = 0;
         int last_EOS = 0;
@@ -197,6 +196,12 @@ public class Main {
         SemanticAnalyser SemA = new SemanticAnalyser(x.imgBuf,x.ndxNds);
 
         System.out.println("Syntax analyzing completed!");
+
+        SemA.Analyze(arr_methods_list,nodes,x.imgBuf);
+
+        CodeGenerator CD = new CodeGenerator(x.path,x.imgBuf);
+
+        CD.generate_code(arr_methods_list,nodes);
 
         //System.out.println("Lexical analyzing completed!");
         //System.out.println("Error on " + 3 + " lexem: \n have to be \"" + "{" + "\" but we have \"" + "int" + "\"");

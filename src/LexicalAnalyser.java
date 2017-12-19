@@ -464,7 +464,7 @@ public class LexicalAnalyser {
     }
 
     boolean flag = false;
-    char[] text = new char[200];
+    char[] text = new char[1024];
     int count = 0;
     public String path = "";
 
@@ -672,7 +672,7 @@ public class LexicalAnalyser {
                 }
                 // якщо не знайдено
                 nodes[nNode].ndOp = tokType._nam;
-                insBTr(nodes[nNode], ndxNds[pRtNdx]);
+                //insBTr(nodes[nNode], ndxNds[pRtNdx]);
                 nImBg = nImCr;
                 if (c != ltrType.dlmeormr && c != ltrType.dlmaux) imgBuf[nImCr++] = l;
                 break;
@@ -696,7 +696,7 @@ public class LexicalAnalyser {
                     eNeut(nNode);
                 }      // фіксація помилки
                 nodes[nNode].dataType = (int) sP.ordinal();
-                insBTr(nodes[nNode], ndxNds[pRtNdx]);
+                //insBTr(nodes[nNode], ndxNds[pRtNdx]);
                 nImBg = nImCr;
                 if (c != ltrType.dlmeormr && c != ltrType.dlmaux) imgBuf[nImCr++] = l;
                 break;

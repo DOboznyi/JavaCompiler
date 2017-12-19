@@ -36,6 +36,10 @@ public class CodeGenerator {
         this.path = path + ".asm";
     }
 
+    public CodeGenerator(char[] imgBuf) {
+        this.imgBuf = imgBuf;
+    }
+
     lxNode[] nd;
     char[] imgBuf;
 
@@ -345,7 +349,7 @@ public class CodeGenerator {
         return res;
     }
 
-    private String getName(lxNode nd) {
+    public String getName(lxNode nd) {
         String name = "";
         int k = nd.start;
         while (imgBuf[k] != 0) {

@@ -1,12 +1,14 @@
-import java.util.Arrays;
+import com.sun.org.apache.bcel.internal.classfile.Code;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 
 
 public class SemanticAnalyser {
     char[] imgBuf;
     private int difV;
 
-    SemanticAnalyser(char[] imgBuf,indStrUS[] ndxNds) {
+    SemanticAnalyser(char[] imgBuf, indStrUS[] ndxNds) {
         this.imgBuf = imgBuf;
         this.ndxNds = ndxNds;
     }
@@ -328,7 +330,6 @@ public class SemanticAnalyser {
                     datType._v,    // En - Неправильне ім'я
                     datType._v    // Eo - Неприпустиме сполучення операцій
             };
-
 
 
     ;
@@ -1012,5 +1013,330 @@ public class SemanticAnalyser {
         return nc;
     }
 
+    CodeGenerator CD;
+    ArrayList<lxNode> nodes;
+    ArrayList<method_nodes> methods;
 
+    private method_nodes get_name_method(String name) {
+        for (int i = 0; i < nodes.size(); i++) {
+            if (methods.get(i).name.equals(name)) {
+                return methods.get(i);
+            }
+        }
+        return null;
+    }
+
+    private boolean check_name_method(String name) {
+        for (int i = 0; i < methods.size(); i++) {
+            if (methods.get(i).name.equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean check_identifier_method(String name, method_nodes method) {
+        for (int i = 0; i < method.parametrs.size(); i++) {
+            if (method.parametrs.get(i).name.equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private identifiers get_identifier_method(String name, method_nodes method) {
+        for (int i = 0; i < method.parametrs.size(); i++) {
+            if (method.parametrs.get(i).name.equals(name)) {
+                return method.parametrs.get(i);
+            }
+        }
+        return null;
+    }
+
+    private void set_not_null(String name, method_nodes method) {
+        for (int i = 0; i < method.parametrs.size(); i++) {
+            if (method.parametrs.get(i).name.equals(name)) {
+                method.parametrs.get(i).is_null = false;
+                break;
+            }
+        }
+    }
+
+    public void error() {
+        System.out.println("Error on");
+        System.exit(0);
+    }
+
+    public void Analyze(ArrayList<ArrayList<lxNode>> arr_methods_list, ArrayList<lxNode> nodes, char[] imgBuf) {
+        CD = new CodeGenerator(imgBuf);
+        this.nodes = nodes;
+        methods = new ArrayList<>();
+        for (int i = 0; i < arr_methods_list.size(); i++) {
+            int count = 0;
+            lxNode temp = arr_methods_list.get(i).get(0);
+            while (temp.ndOp != tokType._int && temp.ndOp != tokType._void) {
+                temp = temp.pstNd;
+            }
+            if (temp.prvNd == null) {
+                if (check_name_method(CD.getName(arr_methods_list.get(i).get(1)))) {
+                    error();
+                }
+                methods.add(new method_nodes(CD.getName(arr_methods_list.get(i).get(1)), arr_methods_list.get(i).get(0).ndOp));
+                temp = arr_methods_list.get(i).get(2).pstNd;
+                if (temp != null) {
+                    while (temp.ndOp == tokType._EOS) {
+                        temp = temp.prvNd;
+                    }
+                    if (check_identifier_method(CD.getName(temp.pstNd), methods.get(methods.size() - 1))) {
+                        error();
+                    }
+                    methods.get(methods.size() - 1).add_parametrs(CD.getName(temp.pstNd), temp.ndOp, false);
+                    count++;
+                    temp = nodes.get(temp.prnNd);
+                    while (temp.ndOp != tokType._brkz) {
+                        methods.get(methods.size() - 1).add_parametrs(CD.getName(temp.pstNd.pstNd), temp.pstNd.ndOp, false);
+                        count++;
+                        temp = nodes.get(temp.prnNd);
+                    }
+                }
+                methods.get(methods.size() - 1).count = count;
+            } else {
+                methods.add(new method_nodes("main", tokType._void));
+                methods.get((methods.size() - 1)).count = count;
+            }
+        }
+        for (int i = 0; i < arr_methods_list.size(); i++) {
+            lxNode temp = arr_methods_list.get(i).get(0);
+            while (temp.ndOp != tokType._opbz) {
+                temp = nodes.get(temp.prnNd);
+            }
+            check_code_block(temp, methods.get(i));
+            /*while (temp.ndOp == tokType._EOS) {
+                temp = temp.prvNd;
+            }
+            if (temp.ndOp==tokType._return){
+                temp = temp.prvNd.pstNd;
+            }
+            check_compound(temp);
+            temp = nodes.get(temp.prnNd);
+            while(temp.ndOp!=tokType._opbz){
+                if(temp.pstNd!=null) {
+                    check_compound( temp.pstNd);
+                }
+                temp = nodes.get(temp.prnNd);
+            }
+            if (arr_methods_list.get(i).get(0).prvNd==null){
+                methods.add(new method_nodes(CD.getName(arr_methods_list.get(i).get(1)),arr_methods_list.get(i).get(0).ndOp));
+            }
+            */
+        }
+    }
+
+    private void check_code_block(lxNode start, method_nodes method) {
+        lxNode temp = start.pstNd;
+        while (temp.ndOp == tokType._EOS) {
+            temp = temp.prvNd;
+        }
+        check_compound(temp, method);
+        temp = nodes.get(temp.prnNd);
+        while (temp.ndOp != tokType._opbz) {
+            if (temp.pstNd != null) {
+                check_compound(temp.pstNd, method);
+            }
+            temp = nodes.get(temp.prnNd);
+        }
+    }
+
+    private void check_compound(lxNode start, method_nodes method) {
+        lxNode temp = start;
+        if (temp.ndOp == tokType._int) {
+            if (check_identifier_method(CD.getName(temp.pstNd.prvNd), method)) {
+                error();
+            }
+            //method.add_parametrs(CD.getName(temp.pstNd.prvNd), temp.ndOp);
+            temp = temp.pstNd;
+            //if (temp.ndOp == tokType._ass) {
+            //    set_not_null(CD.getName(temp.prvNd), method);
+            //}
+        }
+        switch (temp.ndOp) {
+            case _ass:
+                checkAss(temp, method);
+                break;
+            case _add:
+                checkAdd(temp, method);
+                break;
+            case _nam:
+                checkNam(temp, method, false);
+                break;
+            case _for:
+                checkFor(temp, method);
+                break;
+            case _whileP:
+                switch (temp.prvNd.ndOp) {
+                    case _brkz:
+                        checkWhile(temp, method);
+                        break;
+                    case _repeat:
+                        checkRepeat(temp, method);
+                        break;
+                }
+                break;
+            case _srcn:
+                checkSrcn(temp, method);
+                break;
+            case _brkz:
+                checkOp(temp, method);
+                break;
+            case _return:
+                if (method.type != tokType._void) {
+                    temp = temp.prvNd.pstNd;
+                } else error();
+                check_compound(temp, method);
+                break;
+        }
+
+    }
+
+    private void checkOp(lxNode start, method_nodes method) {
+        lxNode temp = start;
+        String name = CD.getName(temp.prvNd);
+        temp = temp.pstNd;
+        int count = 0;
+        if (temp != null) {
+            while (temp.ndOp == tokType._comma) {
+                temp = temp.prvNd;
+            }
+            check_compound(temp, method);
+            count++;
+            temp = nodes.get(temp.prnNd);
+            while (temp.ndOp != tokType._brkz) {
+                check_compound(temp.pstNd, method);
+                temp = nodes.get(temp.prnNd);
+                count++;
+            }
+        }
+        if (get_name_method(name).count != count) {
+            error(); //Неправильное количество аргументов
+        }
+    }
+
+    private void checkAss(lxNode start, method_nodes method) {
+        if (nodes.get(start.prnNd).ndOp==tokType._int) {
+            checkNam(start.prvNd, method, true);
+        }
+        else{
+            checkNam(start.prvNd, method,false);
+        }
+        check_compound(start.pstNd, method);
+    }
+
+    private void checkAdd(lxNode start, method_nodes method) {
+        check_compound(start.prvNd, method);
+        check_compound(start.pstNd, method);
+    }
+
+    private void checkNam(lxNode start, method_nodes method, boolean flag) {
+        if (flag) {
+            if (check_identifier_method(CD.getName(start), method)) {
+                error();//переопределение
+            }
+        } else {
+            if (!check_identifier_method(CD.getName(start), method)) {
+                error();//не найдено
+            }
+            if (get_identifier_method(CD.getName(start), method).is_null) {
+                error();//null
+            }
+        }
+    }
+
+    private void checkSrcn(lxNode start, method_nodes method) {
+
+    }
+
+    private void checkFor(lxNode start, method_nodes method) {
+        check_compound(start.prvNd.pstNd.prvNd.prvNd, method); //start condition
+        check_compound(start.prvNd.pstNd.pstNd, method);
+        check_bool(start.prvNd.pstNd.prvNd.pstNd, method);
+        check_code_block(start.pstNd, method);
+    }
+
+    private void checkWhile(lxNode start, method_nodes method) {
+        check_bool(start.prvNd.pstNd, method);
+        check_code_block(start.pstNd, method);
+    }
+
+    private void checkRepeat(lxNode start, method_nodes method) {
+        check_code_block(start.prvNd.pstNd, method);
+        check_bool(start.pstNd.pstNd, method);
+    }
+
+    private void check_bool(lxNode start, method_nodes method) {
+        lxNode temp = start;
+        switch (temp.ndOp) {//_lt, _le, _eq, _ne, _ge, _gt,       // < <= == != >= >
+            case _lt:
+                check_compound(temp.prvNd, method);
+                check_compound(temp.pstNd, method);
+                break;
+            case _le:
+                check_compound(temp.prvNd, method);
+                check_compound(temp.pstNd, method);
+                break;
+            case _eq:
+                check_compound(temp.prvNd, method);
+                check_compound(temp.pstNd, method);
+                break;
+            case _ne:
+                check_compound(temp.prvNd, method);
+                check_compound(temp.pstNd, method);
+                break;
+            case _ge:
+                check_compound(temp.prvNd, method);
+                check_compound(temp.pstNd, method);
+                break;
+            case _gt:
+                check_compound(temp.prvNd, method);
+                check_compound(temp.pstNd, method);
+                break;
+        }
+    }
+
+class method_nodes {
+    String name;
+    tokType type;
+    ArrayList<identifiers> parametrs;
+    int count;
+
+    public method_nodes(String name, tokType type) {
+        this.name = name;
+        this.type = type;
+        parametrs = new ArrayList<>();
+    }
+
+    public void add_parametrs(String name, tokType type) {
+        parametrs.add(new identifiers(name, type));
+    }
+
+    public void add_parametrs(String name, tokType type, boolean is_null) {
+        parametrs.add(new identifiers(name, type, is_null));
+    }
+}
+
+class identifiers {
+    String name;
+    tokType type;
+    boolean is_null = true;
+
+    public identifiers(String name, tokType type) {
+        this.name = name;
+        this.type = type;
+    }
+
+    public identifiers(String name, tokType type, boolean is_null) {
+        this.name = name;
+        this.type = type;
+        this.is_null = is_null;
+    }
+}
 }

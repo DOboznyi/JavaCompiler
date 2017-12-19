@@ -466,7 +466,7 @@ public class SyntaxAnalyser {
         temp.addChild(trace_Statement());
         temp.addChild(trace_Bool_Expression());
         thread.matchNext(tokType._EOS);
-        temp.addChild(trace_Statement());
+        temp.addChild(trace_Statement_Body());
         thread.matchNext(tokType._bckt);
         temp.addChild(trace_Block(false));
         return temp;
@@ -485,7 +485,7 @@ public class SyntaxAnalyser {
 
     //Обработчик правила do ::= "do" "{" block "}" while "(" boolean_expression ")"
     public synNode trace_Do() {
-        thread.matchNext(tokType._whileN);
+        thread.matchNext(tokType._repeat);
         synNode temp = new synNode(synNode.synType._do_node);
         temp.addChild(trace_Block(false));
         thread.matchNext(tokType._whileP);
@@ -567,7 +567,7 @@ public class SyntaxAnalyser {
             case _whileP:
                 temp = trace_While();
                 break;
-            case _whileN:
+            case _repeat:
                 temp = trace_Do();
                 break;
             default:
