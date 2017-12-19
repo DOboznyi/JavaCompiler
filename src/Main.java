@@ -3,28 +3,30 @@ import java.util.ArrayList;
 public class Main {
     public static void main(String[] args) {
         System.out.println("Hello World!");
-        LexicalAnalyser x = new LexicalAnalyser();
+        LexicalAnalyser LA = new LexicalAnalyser();
         int nn;
         do {
-            nn = x.LxAnlzr();
-        } while (x.nodes[nn].ndOp != tokType._EOF);
+            nn = LA.LxAnlzr();
+        } while (LA.nodes[nn].ndOp != tokType._EOF);
+
+        System.out.println("Lexical analyzing completed!");
 
         SyntaxAnalyser SA = new SyntaxAnalyser();
-        int size = SA.synAnalysis(x.nodes);
-        x.nodes = SA.thread.pointer;
+        int size = SA.synAnalysis(LA.nodes);
+        LA.nodes = SA.thread.pointer;
 
 
         ArrayList<lxNode> arr_class_list = new ArrayList<>();
 
         int i;
         for (i = 0; i < size; i++) {
-            arr_class_list.add(x.nodes[i]);
+            arr_class_list.add(LA.nodes[i]);
             if (arr_class_list.get(i).ndOp == tokType._opbr) {
                 i++;
                 break;
             }
         }
-        arr_class_list.add(x.nodes[size - 1]);
+        arr_class_list.add(LA.nodes[size - 1]);
         lxNode[] arr_class = arr_class_list.toArray(new lxNode[arr_class_list.size() + 1]);
         SA.makeTree(arr_class,0);
         for (int j = 0; j < arr_class.length - 1; j++) {
@@ -49,8 +51,8 @@ public class Main {
                 }
                 //start = i;
                 //arr_methods[num][id] = x.nodes[i];
-                arr_methods_list.get(num).add(x.nodes[i]);
-                switch (x.nodes[i].ndOp) {
+                arr_methods_list.get(num).add(LA.nodes[i]);
+                switch (LA.nodes[i].ndOp) {
                     case _opbr:
                         flag = true;
                         a++;
@@ -75,7 +77,7 @@ public class Main {
                 boolean f = true;
                 int start_n = arr_methods[3].start;
                 for (int z=0;z<_main.length;z++){
-                    if (x.imgBuf[start_n+z]!=_main[z]){
+                    if (LA.imgBuf[start_n+z]!=_main[z]){
                         f=false;
                         break;
                     }
@@ -193,15 +195,19 @@ public class Main {
         //nr = SA.nxtProd(x.nodes, nr, nc);
         //while (++nc < nn);
 
-        SemanticAnalyser SemA = new SemanticAnalyser(x.imgBuf,x.ndxNds);
+        SemanticAnalyser SemA = new SemanticAnalyser(LA.imgBuf,LA.ndxNds);
 
         System.out.println("Syntax analyzing completed!");
 
-        SemA.Analyze(arr_methods_list,nodes,x.imgBuf);
+        SemA.Analyze(arr_methods_list,nodes,LA.imgBuf);
 
-        CodeGenerator CD = new CodeGenerator(x.path,x.imgBuf);
+        System.out.println("Semantic analyzing completed!");
+
+        CodeGenerator CD = new CodeGenerator(LA.path,LA.imgBuf);
 
         CD.generate_code(arr_methods_list,nodes);
+
+        System.out.println("Code generation completed!");
 
         //System.out.println("Lexical analyzing completed!");
         //System.out.println("Error on " + 3 + " lexem: \n have to be \"" + "{" + "\" but we have \"" + "int" + "\"");

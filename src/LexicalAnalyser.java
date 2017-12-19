@@ -470,11 +470,11 @@ public class LexicalAnalyser {
 
     private char getnextchar() {
         if (!flag) {
-            System.out.println("Input file path:");
-            //Scanner scan = new Scanner(System.in);
+            System.out.print("Input file path: ");
+            Scanner scan = new Scanner(System.in);
 
-            //path = scan.nextLine();
-            path = "d:/1.h";
+            path = scan.nextLine();
+            //path = "d:/1.h";
             char[] text1 = {};
             File f = new File(path);
             if (f.exists() && !f.isDirectory()) {

@@ -1224,6 +1224,7 @@ public class SemanticAnalyser {
     private void checkAss(lxNode start, method_nodes method) {
         if (nodes.get(start.prnNd).ndOp==tokType._int) {
             checkNam(start.prvNd, method, true);
+            method.add_parametrs(CD.getName(start.prvNd),nodes.get(start.prnNd).ndOp,false);
         }
         else{
             checkNam(start.prvNd, method,false);

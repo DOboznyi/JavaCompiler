@@ -3,16 +3,23 @@ import static java.nio.file.StandardOpenOption.*;
 import java.nio.file.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class CodeGenerator {
-    String path = "d:\\MyTest.txt";
+    String path;// = "d:\\MyTest.txt";
     String text = "";
     String data = "";
     String code = "";
     int index=0;
 
     public void writeToFile() {
-        try(  PrintWriter out = new PrintWriter( "d:\\filename.txt" )  ){
+
+        System.out.print("Input file path: ");
+        Scanner scan = new Scanner(System.in);
+
+        path = scan.nextLine();
+
+        try(  PrintWriter out = new PrintWriter( path )  ){
             out.println( text );
         }
         catch (IOException x) {
