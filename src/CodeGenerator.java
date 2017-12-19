@@ -163,8 +163,15 @@ public class CodeGenerator {
         }
         if (temp.ndOp == tokType._int) {
             types.add(temp.ndOp);
-            names.add(getName(temp.pstNd.prvNd));
-            data += getName(temp.pstNd.prvNd) + "_" + name + " dd 0\r\n";
+            if (temp.pstNd.ndOp==tokType._ass){
+                names.add(getName(temp.pstNd.prvNd));
+                data += getName(temp.pstNd.prvNd) + "_" + name + " dd 0\r\n";
+            }
+            else {
+                names.add(getName(temp.pstNd));
+                data += getName(temp.pstNd) + "_" + name + " dd 0\r\n";
+                return res;
+            }
             temp = temp.pstNd;
         }
         switch (temp.ndOp) {

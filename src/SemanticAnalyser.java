@@ -1149,9 +1149,18 @@ public class SemanticAnalyser {
 
     private void check_compound(lxNode start, method_nodes method) {
         lxNode temp = start;
+        boolean flag = false;
         if (temp.ndOp == tokType._int) {
-            if (check_identifier_method(CD.getName(temp.pstNd.prvNd), method)) {
-                error();
+            if (temp.pstNd.ndOp==tokType._ass) {
+                if (check_identifier_method(CD.getName(temp.pstNd.prvNd), method)) {
+                    error();//переопределение
+                }
+            }
+            else {
+                if (check_identifier_method(CD.getName(temp.pstNd), method)) {
+                    error();//переопределение
+                }
+                flag = true;
             }
             //method.add_parametrs(CD.getName(temp.pstNd.prvNd), temp.ndOp);
             temp = temp.pstNd;
@@ -1167,7 +1176,7 @@ public class SemanticAnalyser {
                 checkAdd(temp, method);
                 break;
             case _nam:
-                checkNam(temp, method, false);
+                checkNam(temp, method, flag);
                 break;
             case _for:
                 checkFor(temp, method);

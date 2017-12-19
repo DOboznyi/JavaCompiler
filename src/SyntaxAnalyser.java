@@ -511,10 +511,15 @@ public class SyntaxAnalyser {
     //Обработчик правила statement_body ::= empty | assignment | method
     public synNode trace_Statement_Body() {
         synNode temp = new synNode(synNode.synType._statement_body);
+        boolean flag = false;
         if (thread.lookNext() == tokType._int && thread.lookNext2() == tokType._nam) {
             thread.matchNext(tokType._int);
+            flag = true;
         }
-        if (thread.lookNext() == tokType._EOS) {
+        if (thread.lookNext() == tokType._EOS&&!flag) {
+            return temp;}
+        if (thread.lookNext() == tokType._nam&&thread.lookNext2() == tokType._EOS) {
+            thread.matchNext(tokType._nam);
             return temp;
         } else {
             if (((thread.pos + 1) < (thread.pointer.length - 1)) && thread.lookNext2() == tokType._opbr) {
