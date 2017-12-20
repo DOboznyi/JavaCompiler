@@ -473,8 +473,8 @@ public class LexicalAnalyser {
             System.out.print("Input file path: ");
             Scanner scan = new Scanner(System.in);
 
-            //path = scan.nextLine();
-            path = "d:/in.java";
+            path = scan.nextLine();
+            //path = "d:/in.java";
             char[] text1 = {};
             File f = new File(path);
             if (f.exists() && !f.isDirectory()) {

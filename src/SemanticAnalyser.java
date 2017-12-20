@@ -1062,8 +1062,8 @@ public class SemanticAnalyser {
         }
     }
 
-    public void error() {
-        System.out.println("Error on");
+    public void error(String error) {
+        System.out.println(error);
         System.exit(0);
     }
 
@@ -1079,7 +1079,7 @@ public class SemanticAnalyser {
             }
             if (temp.prvNd == null) {
                 if (check_name_method(CD.getName(arr_methods_list.get(i).get(1)))) {
-                    error();
+                    error("Redefinition method \""+CD.getName(arr_methods_list.get(i).get(1))+"\"");
                 }
                 methods.add(new method_nodes(CD.getName(arr_methods_list.get(i).get(1)), arr_methods_list.get(i).get(0).ndOp));
                 temp = arr_methods_list.get(i).get(2).pstNd;
@@ -1088,7 +1088,7 @@ public class SemanticAnalyser {
                         temp = temp.prvNd;
                     }
                     if (check_identifier_method(CD.getName(temp.pstNd), methods.get(methods.size() - 1))) {
-                        error();
+                        error( "Method not found \""+CD.getName(arr_methods_list.get(i).get(1))+"\"");
                     }
                     methods.get(methods.size() - 1).add_parametrs(CD.getName(temp.pstNd), temp.ndOp, false);
                     count++;
@@ -1153,12 +1153,12 @@ public class SemanticAnalyser {
         if (temp.ndOp == tokType._int) {
             if (temp.pstNd.ndOp==tokType._ass) {
                 if (check_identifier_method(CD.getName(temp.pstNd.prvNd), method)) {
-                    error();//переопределение
+                    error("Redefinition error at x="+temp.pstNd.prvNd.x+" y="+temp.pstNd.prvNd.y);//переопределение
                 }
             }
             else {
                 if (check_identifier_method(CD.getName(temp.pstNd), method)) {
-                    error();//переопределение
+                    error("Redefinition error at x="+temp.pstNd.x+" y="+temp.pstNd.y);//переопределение
                 }
                 flag = true;
             }
@@ -1200,7 +1200,7 @@ public class SemanticAnalyser {
             case _return:
                 if (method.type != tokType._void) {
                     temp = temp.prvNd.pstNd;
-                } else error();
+                } else error("No return in void method at x="+temp.prvNd.pstNd.x+" y="+temp.prvNd.pstNd.y);
                 check_compound(temp, method);
                 break;
         }
@@ -1226,7 +1226,7 @@ public class SemanticAnalyser {
             }
         }
         if (get_name_method(name).count != count) {
-            error(); //Неправильное количество аргументов
+            error("Error count of parametrs at x="+temp.x+" y="+temp.y); //Неправильное количество аргументов
         }
     }
 
@@ -1249,14 +1249,14 @@ public class SemanticAnalyser {
     private void checkNam(lxNode start, method_nodes method, boolean flag) {
         if (flag) {
             if (check_identifier_method(CD.getName(start), method)) {
-                error();//переопределение
+                error("Redefinition error at x="+start.x+" y="+start.y);//переопределение
             }
         } else {
             if (!check_identifier_method(CD.getName(start), method)) {
-                error();//не найдено
+                error("Identifiyer not found at x="+start.x+" y="+start.y);//не найдено
             }
             if (get_identifier_method(CD.getName(start), method).is_null) {
-                error();//null
+                error("Null exception at x="+start.x+" y="+start.y);//null
             }
         }
     }
